@@ -1,3 +1,5 @@
+NOTE: BELOW IS THE 32 BIT VIDEO COURSE, WE HAVE CLONED THIS REPOSITORY TO BUILD THE 64 BIT COURSE, CHECK FINAL COMMIT FOR LINK TO THE 64 BIT COURSE WHICH WILL HAVE AN UPDATED README.md
+
 # Developing a Multithreaded Kernel from Scratch
 
 Welcome to our comprehensive kernel development course, meticulously designed for learners who are interested in creating a multitasking operating system and kernel from the ground up. This course assumes no previous experience in kernel programming, ensuring a complete understanding of concepts starting from the basics. This is the code repository you will build from scratch when learning kernel development in our kernel course.
