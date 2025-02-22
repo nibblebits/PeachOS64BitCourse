@@ -1,11 +1,13 @@
 [BITS 32]
 
 global _start
+extern kernel_main
 
 ; Segment Selectors
 CODE_SEG equ 0x08
 DATA_SEG equ 0x10
 LONG_MODE_CODE_SEG equ 0x18
+LONG_MODE_DATA_SEG equ 0x20 ; Selector for the 64 bit data segment (offset in gdt)
 
 _start:
     mov ax, DATA_SEG
@@ -47,6 +49,20 @@ _start:
 
 [BITS 64]
 long_mode_entry:
+    mov ax, LONG_MODE_DATA_SEG
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
+    
+    ; Set up the stack pointer RSP
+    ; (HIGH 32 BITS ARE NEW | ESP (32 bits) )
+    mov rsp, 0x00200000
+    mov rbp, rsp
+    jmp kernel_main
+
+
     jmp $
 
 
@@ -81,6 +97,14 @@ gdt:
     db 0x20                 ; Flag: Long MOde Segment
     db 0x00                 ; Base address high
 
+    ; 64 bit data segment descriptor
+    dw 0x0000           ; Segment limit low
+    dw 0x0000           ; Base address low
+    db 0x00             ; Base address middle
+    db 0x92             ; Access byte data segment, read/write, present
+    db 0x00             ; Long mode data segment has flag to zero
+    db 0x00             ; Base address high
+
 gdt_end:
 
 gdt_descriptor:
@@ -102,5 +126,6 @@ align 4096
 PD_Table:
     ; Map the first 4 MB of memory using two 2 MB pages
     dq (0x0000000000000083)     ; PD Entry for 0x00000000 - 0x00200000
-    dq (0x0000000020000083)     ; PD Entry for 0x00200000 - 0x00400000
-    times 510 dq 0              ; Remaining entries to zero
+    dq (0x0000000000200083)     ; PD Entry for 0x00200000 - 0x00400000
+    dq (0x0000000000400083)     ; PD Entry for 0x00400000 - 0x00600000
+    times 509 dq 0              ; Remaining entries to zero
