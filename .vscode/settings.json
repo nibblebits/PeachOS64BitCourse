@@ -2,6 +2,7 @@
     "files.associations": {
         "*.tcc": "c",
         "algorithm": "c",
-        "fstream": "c"
+        "fstream": "c",
+        "kernel.h": "c"
     }
 }
