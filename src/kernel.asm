@@ -122,10 +122,14 @@ PDPT_TABLE:
     dq PD_Table + 0x03      ; PDPT entry pointing to PD(Present, RW)
     times 511 dq 0          ; Remaining entries to be set to zero
 
+%define PS_FLAG 0x83        ; Page size flag for 2 Mib bytes
+%define PAGE_INCREMENT 0x200000
+
 align 4096
 PD_Table:
-    ; Map the first 4 MB of memory using two 2 MB pages
-    dq (0x0000000000000083)     ; PD Entry for 0x00000000 - 0x00200000
-    dq (0x0000000000200083)     ; PD Entry for 0x00200000 - 0x00400000
-    dq (0x0000000000400083)     ; PD Entry for 0x00400000 - 0x00600000
+    %assign addr 0x0000000 ; Start address
+    %rep 65                 ; Number of pages
+        dq addr + PS_FLAG
+        %assign addr addr + PAGE_INCREMENT
+    %endrep
     times 509 dq 0              ; Remaining entries to zero
