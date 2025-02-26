@@ -73,6 +73,18 @@ struct paging_desc
     paging_map_level_t level;
 } __attribute__((packed));
 
+int paging_map_to(struct paging_desc* desc, void* virt, void* phys, void* phys_end, int flags);
+int paging_map_range(struct paging_desc* desc, void* virt, void* phys, size_t count, int flags);
+int paging_map(struct paging_desc* desc, void* virt, void* phys, int flags);
+void* paging_align_to_lower_page(void* addr);
+void* paging_align_address(void* ptr);
+struct paging_desc* paging_desc_new(paging_map_level_t root_map_level);
+
+void paging_load_directory(uintptr_t* directory);
+void paging_invalidate_tlb_entry(void* addr);
+void paging_switch(struct paging_desc* desc);
+
+
 
 // struct paging_4gb_chunk
 // {
