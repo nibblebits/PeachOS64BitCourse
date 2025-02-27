@@ -99,14 +99,15 @@ void print(const char* str)
     }
 }
 
+void panic(const char* msg)
+{
+    print(msg);
+    while(1) {}
+}
+
 
 // static struct paging_4gb_chunk* kernel_chunk = 0;
 
-// void panic(const char* msg)
-// {
-//     print(msg);
-//     while(1) {}
-// }
 
 // void kernel_page()
 // {
@@ -127,6 +128,12 @@ void print(const char* str)
 
 // page descriptor
 struct paging_desc* kernel_paging_desc = 0;
+
+void kernel_page()
+{
+    kernel_registers();
+    paging_switch(kernel_paging_desc);
+}
 void kernel_main()
 {
      terminal_initialize();
