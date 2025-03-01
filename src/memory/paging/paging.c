@@ -60,7 +60,7 @@ struct paging_desc* paging_desc_new(paging_map_level_t root_map_level)
     return desc;
 }
 
-static bool paging_is_aligned(void* addr)
+bool paging_is_aligned(void* addr)
 {
     return ((uintptr_t) addr % PAGING_PAGE_SIZE) == 0;
 }

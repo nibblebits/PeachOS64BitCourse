@@ -73,6 +73,8 @@ struct paging_desc
     paging_map_level_t level;
 } __attribute__((packed));
 
+bool paging_is_aligned(void* addr);
+
 int paging_map_to(struct paging_desc* desc, void* virt, void* phys, void* phys_end, int flags);
 int paging_map_range(struct paging_desc* desc, void* virt, void* phys, size_t count, int flags);
 int paging_map(struct paging_desc* desc, void* virt, void* phys, int flags);

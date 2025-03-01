@@ -181,3 +181,28 @@ void heap_free(struct heap* heap, void* ptr)
 {
     heap_mark_blocks_free(heap, heap_address_to_block(heap, ptr));
 }
+
+size_t heap_total_size(struct heap* heap)
+{
+    return heap->table->total * PEACHOS_HEAP_BLOCK_SIZE;
+}
+
+size_t heap_total_used(struct heap* heap)
+{
+    size_t total = 0;
+    struct heap_table* table = heap->table;
+    for (size_t i = 0; i < table->total; i++)
+    {
+        if (heap_get_entry_type(table->entries[i]) == HEAP_BLOCK_TABLE_ENTRY_TAKEN)
+        {
+            total += PEACHOS_HEAP_BLOCK_SIZE;
+        }
+    }
+
+    return total;
+}
+
+size_t heap_total_available(struct heap* heap)
+{
+    return heap_total_size(heap) - heap_total_used(heap);
+}
