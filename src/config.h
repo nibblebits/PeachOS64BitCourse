@@ -7,6 +7,14 @@
 
 #define PEACHOS_TOTAL_INTERRUPTS 512
 
+// Where to find the E820 records
+#define PEACHOS_MEMORY_MAP_LOCATION 0x7e00
+
+// 16 Bit number defining the total number of loaded
+// entries. 
+#define PEACHOS_MEMORY_MAP_TOTAL_ENTRIES_LOCATION 0x7DFE
+
+
 // 100MB heap size
 #define PEACHOS_HEAP_SIZE_BYTES 104857600
 #define PEACHOS_HEAP_BLOCK_SIZE 4096

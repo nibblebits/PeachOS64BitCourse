@@ -140,6 +140,10 @@ void kernel_main()
      terminal_initialize();
      print("Hello 64-bit!\n");
 
+    print("Total memory\n");
+    print(itoa(e820_total_accessible_memory()));
+    print("\n");
+    
      kheap_init(PEACHOS_HEAP_SIZE_BYTES);
 
      char* data = kmalloc(50);
