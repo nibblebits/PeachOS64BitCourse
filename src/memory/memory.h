@@ -14,6 +14,8 @@ struct e820_entry
 
 size_t e820_total_accessible_memory();
 struct e820_entry* e820_largest_free_entry();
+size_t e820_total_entries();
+struct e820_entry* e820_entry(size_t index);
 
 void* memset(void* ptr, int c, size_t size);
 int memcmp(void* s1, void* s2, int count);

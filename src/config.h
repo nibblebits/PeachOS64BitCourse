@@ -18,8 +18,16 @@
 // 100MB heap size
 #define PEACHOS_HEAP_SIZE_BYTES 104857600
 #define PEACHOS_HEAP_BLOCK_SIZE 4096
-#define PEACHOS_HEAP_ADDRESS 0x01000000 
-#define PEACHOS_HEAP_TABLE_ADDRESS 0x00007E00
+
+// The minimal address the heap can point at, ensuring
+// that the kernel does not get overwritten
+#define PEACHOS_MINIMAL_HEAP_ADDRESS 0x01100000
+
+// This is a minimal heap table starting address
+#define PEACHOS_MINIMAL_HEAP_TABLE_ADDRESS 0x01000000
+
+#define PEACHOS_MINIMAL_HEAP_TABLE_SIZE PEACHOS_MINIMAL_HEAP_ADDRESS-PEACHOS_MINIMAL_HEAP_TABLE_ADDRESS
+
 
 #define PEACHOS_SECTOR_SIZE 512
 

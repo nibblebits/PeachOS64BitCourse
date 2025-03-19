@@ -206,3 +206,15 @@ size_t heap_total_available(struct heap* heap)
 {
     return heap_total_size(heap) - heap_total_used(heap);
 }
+
+void* heap_zalloc(struct heap* heap, size_t size)
+{
+    void* ptr = heap_malloc(heap, size);
+    if (!ptr)
+    {
+        return 0;
+    }
+
+    memset(ptr, 0x00, size);
+    return ptr;
+}

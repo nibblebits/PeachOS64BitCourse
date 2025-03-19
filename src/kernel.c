@@ -20,7 +20,7 @@
 #include "config.h"
 #include "status.h"
 
-uint16_t* video_mem = 0;
+uint16_t *video_mem = 0;
 uint16_t terminal_row = 0;
 uint16_t terminal_col = 0;
 
@@ -47,9 +47,9 @@ void terminal_backspace()
         terminal_col = VGA_WIDTH;
     }
 
-    terminal_col -=1;
+    terminal_col -= 1;
     terminal_writechar(' ', 15);
-    terminal_col -=1;
+    terminal_col -= 1;
 }
 
 void terminal_writechar(char c, char colour)
@@ -77,7 +77,7 @@ void terminal_writechar(char c, char colour)
 }
 void terminal_initialize()
 {
-    video_mem = (uint16_t*)(0xB8000);
+    video_mem = (uint16_t *)(0xB8000);
     terminal_row = 0;
     terminal_col = 0;
     for (int y = 0; y < VGA_HEIGHT; y++)
@@ -86,12 +86,10 @@ void terminal_initialize()
         {
             terminal_putchar(x, y, ' ', 0);
         }
-    }   
+    }
 }
 
-
-
-void print(const char* str)
+void print(const char *str)
 {
     size_t len = strlen(str);
     for (int i = 0; i < len; i++)
@@ -100,15 +98,15 @@ void print(const char* str)
     }
 }
 
-void panic(const char* msg)
+void panic(const char *msg)
 {
     print(msg);
-    while(1) {}
+    while (1)
+    {
+    }
 }
 
-
 // static struct paging_4gb_chunk* kernel_chunk = 0;
-
 
 // void kernel_page()
 // {
@@ -128,7 +126,7 @@ void panic(const char* msg)
 // };
 
 // page descriptor
-struct paging_desc* kernel_paging_desc = 0;
+struct paging_desc *kernel_paging_desc = 0;
 
 void kernel_page()
 {
@@ -137,49 +135,49 @@ void kernel_page()
 }
 void kernel_main()
 {
-     terminal_initialize();
-     print("Hello 64-bit!\n");
+    terminal_initialize();
+    print("Hello 64-bit!\n");
 
     print("Total memory\n");
     print(itoa(e820_total_accessible_memory()));
     print("\n");
-    
-     kheap_init(PEACHOS_HEAP_SIZE_BYTES);
 
-     char* data = kmalloc(50);
-     data[0] = 'A';
-     data[1] = 'B';
-     data[2] = 'C';
-     data[3] = 0x00;
-     print(data);
-     kernel_paging_desc = paging_desc_new(PAGING_MAP_LEVEL_4);
-     // Map the first 419 MB of memory to the first 419 MB of memory
-     paging_map_range(kernel_paging_desc, (void*) 0x00000000, 
-                     (void*) 0x00000000, 1024 * 100, PAGING_IS_WRITEABLE | PAGING_IS_PRESENT);
-     
-     paging_switch(kernel_paging_desc);
-     data[0] = 'M';
-     print(data);
+    kheap_init();
 
-     struct heap* kernel_heap = kheap_get();
-     size_t total = heap_total_size(kernel_heap);
-     size_t used = heap_total_used(kernel_heap);
-     size_t avail = heap_total_available(kernel_heap);
+    char *data = kmalloc(50);
+    data[0] = 'A';
+    data[1] = 'B';
+    data[2] = 'C';
+    data[3] = 0x00;
+    print(data);
+    //  kernel_paging_desc = paging_desc_new(PAGING_MAP_LEVEL_4);
+    //  // Map the first 419 MB of memory to the first 419 MB of memory
+    //  paging_map_range(kernel_paging_desc, (void*) 0x00000000,
+    //                  (void*) 0x00000000, 1024 * 100, PAGING_IS_WRITEABLE | PAGING_IS_PRESENT);
 
-     print("Total heap size: ");
-     print(itoa(total));
-     print("\n");
+    //  paging_switch(kernel_paging_desc);
+    //  data[0] = 'M';
+    //  print(data);
 
-     print("Total heap used: ");
-     print(itoa(used));
-     print("\n");
+    //  struct heap* kernel_heap = kheap_get();
+    //  size_t total = heap_total_size(kernel_heap);
+    //  size_t used = heap_total_used(kernel_heap);
+    //  size_t avail = heap_total_available(kernel_heap);
 
-     print("Total heap available: ");
-     print(itoa(avail));
-     print("\n");
-     
-     // OLD CODE BELOW
-     // ----------------------------------
+    //  print("Total heap size: ");
+    //  print(itoa(total));
+    //  print("\n");
+
+    //  print("Total heap used: ");
+    //  print(itoa(used));
+    //  print("\n");
+
+    //  print("Total heap available: ");
+    //  print(itoa(avail));
+    //  print("\n");
+
+    // OLD CODE BELOW
+    // ----------------------------------
 
     // memset(gdt_real, 0x00, sizeof(gdt_real));
     // gdt_structured_to_gdt(gdt_real, gdt_structured, PEACHOS_TOTAL_GDT_SEGMENTS);
@@ -209,7 +207,7 @@ void kernel_main()
 
     // // Setup paging
     // kernel_chunk = paging_new_4gb(PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
-    
+
     // // Switch to kernel paging chunk
     // paging_switch(kernel_chunk);
 
@@ -221,7 +219,7 @@ void kernel_main()
 
     // // Initialize all the system keyboards
     // keyboard_init();
-        
+
     // struct process* process = 0;
     // int res = process_load_switch("0:/blank.elf", &process);
     // if (res != PEACHOS_ALL_OK)
@@ -229,10 +227,9 @@ void kernel_main()
     //     panic("Failed to load blank.elf\n");
     // }
 
-
     // struct command_argument argument;
     // strcpy(argument.argument, "Testing!");
-    // argument.next = 0x00; 
+    // argument.next = 0x00;
 
     // process_inject_arguments(process, &argument);
 
@@ -243,10 +240,12 @@ void kernel_main()
     // }
 
     // strcpy(argument.argument, "Abc!");
-    // argument.next = 0x00; 
+    // argument.next = 0x00;
     // process_inject_arguments(process, &argument);
 
     // task_run_first_ever_task();
 
-    while(1) {}
+    while (1)
+    {
+    }
 }
