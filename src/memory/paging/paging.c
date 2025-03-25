@@ -1,7 +1,9 @@
 #include "paging.h"
 #include "memory/heap/kheap.h"
 #include "memory/memory.h"
+#include "memory/heap/heap.h"
 #include "status.h"
+
 
 static struct paging_desc* current_paging_desc = 0;
 struct paging_pml_entries* paging_pml4_entries_new()
@@ -146,6 +148,35 @@ int paging_map(struct paging_desc* desc, void* virt, void* phys, int flags)
     return res;
 }
 
+int paging_map_e820_memory_regions(struct paging_desc* desc)
+{
+    size_t total_entries = e820_total_entries();
+    for(size_t i = 0; i < total_entries; i++ )
+    {
+        struct e820_entry* entry = e820_entry(i);
+        if (entry->type == 1)
+        {
+            void* base_addr = (void*)entry->base_addr;
+            void* end_addr = (void*)(entry->base_addr + entry->length);
+
+            // we need to force alignment
+            if (!paging_is_aligned(base_addr))
+            {
+                base_addr = paging_align_address(base_addr);      
+            } 
+
+            if (!paging_is_aligned(end_addr))
+            {
+                end_addr = paging_align_to_lower_page(end_addr);
+            }
+
+            paging_map_to(desc, base_addr, base_addr, end_addr, PAGING_IS_WRITEABLE | PAGING_IS_PRESENT);
+
+        }
+    }
+
+    return 0;
+}
 int paging_map_range(struct paging_desc* desc, void* virt, void* phys, size_t count, int flags)
 {
     int res = 0;

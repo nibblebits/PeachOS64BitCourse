@@ -150,10 +150,8 @@ void kernel_main()
     data[2] = 'C';
     data[3] = 0x00;
     print(data);
-    //  kernel_paging_desc = paging_desc_new(PAGING_MAP_LEVEL_4);
-    //  // Map the first 419 MB of memory to the first 419 MB of memory
-    //  paging_map_range(kernel_paging_desc, (void*) 0x00000000,
-    //                  (void*) 0x00000000, 1024 * 100, PAGING_IS_WRITEABLE | PAGING_IS_PRESENT);
+    kernel_paging_desc = paging_desc_new(PAGING_MAP_LEVEL_4);
+    paging_map_e820_memory_regions(kernel_paging_desc);
 
     //  paging_switch(kernel_paging_desc);
     //  data[0] = 'M';
