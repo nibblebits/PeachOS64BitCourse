@@ -151,9 +151,20 @@ void kernel_main()
     data[3] = 0x00;
     print(data);
     kernel_paging_desc = paging_desc_new(PAGING_MAP_LEVEL_4);
+    if (!kernel_paging_desc)
+    {
+        panic("Failed to create kernel paging descriptor\n");
+    }
     paging_map_e820_memory_regions(kernel_paging_desc);
 
-    //  paging_switch(kernel_paging_desc);
+    paging_switch(kernel_paging_desc);
+
+    for(;;)
+    {
+        if (!kmalloc(4096)) break;
+    }
+
+    print("Memory wasted\n");
     //  data[0] = 'M';
     //  print(data);
 

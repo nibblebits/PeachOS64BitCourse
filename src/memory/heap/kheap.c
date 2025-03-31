@@ -37,6 +37,7 @@ void kheap_init()
     }
 
     void* address = (void*) entry->base_addr;
+    void* end_address = (void*) (entry->base_addr + entry->length);
     void* heap_table_address = address;
     if (heap_table_address < (void*) PEACHOS_MINIMAL_HEAP_TABLE_ADDRESS)
     {
@@ -44,7 +45,7 @@ void kheap_init()
     }
 
     void* heap_address = heap_table_address + PEACHOS_MINIMAL_HEAP_TABLE_SIZE;
-    void* heap_end_address =  heap_address + PEACHOS_HEAP_SIZE_BYTES;
+    void* heap_end_address =  end_address;
 
     // Check if the heap address is aligned
     if (!paging_is_aligned(heap_address))
@@ -95,6 +96,16 @@ void kheap_init()
                 end_addr = paging_align_to_lower_page(end_addr);
             }
 
+            if (base_addr < (void*) PEACHOS_MINIMAL_HEAP_ADDRESS)
+            {
+                base_addr = (void*) PEACHOS_MINIMAL_HEAP_ADDRESS;
+            }
+
+            if (end_addr <= base_addr)
+            {
+                continue;
+            }
+
             // Add the memory region to the multiheap
             multiheap_add(kernel_multiheap, (void*) base_addr, (void*) end_addr, MULTIHEAP_HEAP_FLAG_DEFRAGMENT_WITH_PAGING);
         }
@@ -104,10 +115,6 @@ void kheap_init()
 void* kmalloc(size_t size)
 {
     void* ptr = multiheap_alloc(kernel_multiheap, size);
-    if (!ptr)
-    {
-        panic("Failed to allocate memory\n");
-    }
     return ptr;
 }
 void* kzalloc(size_t size)
