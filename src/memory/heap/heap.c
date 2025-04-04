@@ -83,6 +83,11 @@ static int heap_get_entry_type(HEAP_BLOCK_TABLE_ENTRY entry)
     return entry & 0x0f;
 }
 
+bool heap_is_address_within_heap(struct heap* heap, void* ptr)
+{
+    return (ptr >= heap->saddr && ptr <= heap->eaddr);
+}
+
 int64_t heap_get_start_block(struct heap *heap, uintptr_t total_blocks)
 {
     struct heap_table *table = heap->table;

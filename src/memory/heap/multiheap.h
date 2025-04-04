@@ -24,6 +24,8 @@ struct multiheap
 
     // The linked list for the first heap
     struct multiheap_single_heap* first_multiheap;
+
+    void* max_end_data_addr;
     size_t total_heaps;
 };
 
