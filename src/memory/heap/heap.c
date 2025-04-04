@@ -53,7 +53,7 @@ out:
     return res;
 }
 
-static uintptr_t heap_align_value_to_upper(uintptr_t val)
+uintptr_t heap_align_value_to_upper(uintptr_t val)
 {
     if ((val % PEACHOS_HEAP_BLOCK_SIZE) == 0)
     {
@@ -62,6 +62,19 @@ static uintptr_t heap_align_value_to_upper(uintptr_t val)
 
     val = (val - (val % PEACHOS_HEAP_BLOCK_SIZE));
     val += PEACHOS_HEAP_BLOCK_SIZE;
+    return val;
+}
+
+uintptr_t heap_align_value_to_lower(uintptr_t val)
+{
+    // Check if the value is already aligned
+    if ((val % PEACHOS_HEAP_BLOCK_SIZE) == 0)
+    {
+        return val;
+    }
+
+    // Subtract the remainder
+    val = val - (val % PEACHOS_HEAP_BLOCK_SIZE);
     return val;
 }
 

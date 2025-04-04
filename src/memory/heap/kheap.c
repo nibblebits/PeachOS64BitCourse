@@ -18,7 +18,7 @@ struct e820_entry* kheap_get_allowable_memory_region_for_minimal_heap()
     for(size_t i = 0; i < total_entries; i++)
     {
         struct e820_entry* current = e820_entry(i);
-        if (current->type == 1 && current->length > PEACHOS_HEAP_SIZE_BYTES)
+        if (current->type == 1 && current->length > PEACHOS_HEAP_MINIMUM_SIZE_BYTES)
         {
             entry  = current;
             break;
@@ -44,9 +44,22 @@ void kheap_init()
         heap_table_address = (void*) PEACHOS_MINIMAL_HEAP_TABLE_ADDRESS;
     }
 
-    void* heap_address = heap_table_address + PEACHOS_MINIMAL_HEAP_TABLE_SIZE;
-    void* heap_end_address =  end_address;
+    size_t total_heap_size = end_address - heap_table_address;
+    size_t total_heap_blocks = total_heap_size / PEACHOS_HEAP_BLOCK_SIZE;
+    size_t total_heap_entry_table_size = sizeof(HEAP_BLOCK_TABLE_ENTRY) * total_heap_blocks;
 
+    // Now lets calculate the true size of the data heap
+    size_t heap_data_size = total_heap_size - total_heap_entry_table_size;
+
+    // Now we have the adjusted heap data size we now need to readjust the table size to accomodate
+    // for the lost bytes
+    size_t total_heap_data_blocks = heap_data_size / PEACHOS_HEAP_BLOCK_SIZE;
+    // Make the heap table entry size more accurate
+    total_heap_entry_table_size = sizeof(HEAP_BLOCK_TABLE_ENTRY) * total_heap_data_blocks;
+
+    void* heap_address = heap_table_address + total_heap_entry_table_size;
+    void* heap_end_address = end_address;
+    
     // Check if the heap address is aligned
     if (!paging_is_aligned(heap_address))
     {

@@ -16,7 +16,7 @@
 
 
 // 100MB heap size
-#define PEACHOS_HEAP_SIZE_BYTES 104857600
+#define PEACHOS_HEAP_MINIMUM_SIZE_BYTES 104857600
 #define PEACHOS_HEAP_BLOCK_SIZE 4096
 
 // The minimal address the heap can point at, ensuring
