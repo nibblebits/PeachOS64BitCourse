@@ -14,6 +14,9 @@
 
 typedef unsigned char HEAP_BLOCK_TABLE_ENTRY;
 
+typedef void*(*HEAP_BLOCK_ALLOCATED_CALLBACK_FUNCTION)(void* ptr, size_t size);
+typedef void(*HEAP_BLOCK_FREE_CALLBACK_FUNCTION)(void* ptr);
+
 struct heap_table
 {
     HEAP_BLOCK_TABLE_ENTRY* entries;
@@ -30,7 +33,15 @@ struct heap
 
     // End address of the heap data pool
     void* eaddr;
+
+    // Callback function for when a block is allocated
+    HEAP_BLOCK_ALLOCATED_CALLBACK_FUNCTION block_allocated_callback;
+
+    // Calback function for a when a block is freed.
+    HEAP_BLOCK_FREE_CALLBACK_FUNCTION block_free_callback;
 };
+
+void heap_callbacks_set(struct heap* heap, HEAP_BLOCK_ALLOCATED_CALLBACK_FUNCTION allocated_func, HEAP_BLOCK_FREE_CALLBACK_FUNCTION free_func);
 
 int heap_create(struct heap* heap, void* ptr, void* end, struct heap_table* table);
 void* heap_malloc(struct heap* heap, size_t size);

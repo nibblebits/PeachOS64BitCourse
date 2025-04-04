@@ -78,7 +78,7 @@ bool multiheap_is_address_virtual(struct multiheap* multiheap, void* ptr)
 void* multiheap_virtual_address_to_physical(struct multiheap* multiheap, void* ptr)
 {
     void* phys_addr = (void*)((uintptr_t) ptr - ((uintptr_t) multiheap->max_end_data_addr));
-    return phys_addr;
+    return phys_addr
 }
 int multiheap_add_heap(struct multiheap* multiheap, struct heap* heap, int flags)
 {

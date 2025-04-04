@@ -88,6 +88,12 @@ bool heap_is_address_within_heap(struct heap* heap, void* ptr)
     return (ptr >= heap->saddr && ptr <= heap->eaddr);
 }
 
+void heap_callbacks_set(struct heap* heap, HEAP_BLOCK_ALLOCATED_CALLBACK_FUNCTION allocated_func, HEAP_BLOCK_FREE_CALLBACK_FUNCTION free_func)
+{
+    heap->block_allocated_callback = allocated_func;
+    heap->block_free_callback = free_func;
+}
+
 int64_t heap_get_start_block(struct heap *heap, uintptr_t total_blocks)
 {
     struct heap_table *table = heap->table;
@@ -148,6 +154,12 @@ void heap_mark_blocks_taken(struct heap *heap, int64_t start_block, int64_t tota
         {
             entry |= HEAP_BLOCK_HAS_NEXT;
         }
+
+        void* address = heap_block_to_address(heap, i);
+        if(heap->block_allocated_callback)
+        {
+            heap->block_allocated_callback(address, PEACHOS_HEAP_BLOCK_SIZE);
+        }
     }
 }
 
@@ -180,6 +192,12 @@ void heap_mark_blocks_free(struct heap *heap, int64_t starting_block)
         if (!(entry & HEAP_BLOCK_HAS_NEXT))
         {
             break;
+        }
+
+        void* address = heap_block_to_address(heap, i);
+        if(heap->block_free_callback)
+        {
+            heap->block_free_callback(address);
         }
     }
 }
