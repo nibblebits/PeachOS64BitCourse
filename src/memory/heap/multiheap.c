@@ -1,5 +1,6 @@
 #include "multiheap.h"
 #include "kernel.h"
+#include "memory/paging/paging.h"
 #include "status.h"
 #include <stdbool.h>
 #include <stdint.h>
@@ -172,6 +173,53 @@ void* multiheap_alloc_second_pass(struct multiheap* multiheap, size_t size)
     return NULL;
 }
 
+/**
+ * Called by heap.c when a block is freed, but only in paging heaps.
+ */
+void multiheap_paging_heap_free_block(void* ptr)
+{
+    paging_map(paging_current_descriptor(), ptr, NULL, 0);
+}
+int multiheap_ready(struct multiheap* multiheap)
+{
+    int res = 0;
+    multiheap->flags |= MULTIHEAP_FLAG_IS_READY;
+
+    struct paging_desc* paging_desc = paging_current_descriptor();
+    if (!paging_desc)
+    {
+        panic("You must've had paging setup at this point for this to work\n");
+    }
+
+    void* max_end_addr = multiheap_get_max_memory_end_address(multiheap);
+    multiheap->max_end_data_addr = max_end_addr;
+
+    struct multiheap_single_heap* current = multiheap->first_multiheap;
+    while(current)
+    {
+        if (multiheap_heap_allows_paging(current))
+        {
+            void *paging_heap_starting_address = max_end_addr + (uint64_t) current->heap->saddr;
+            void* paging_heap_ending_address = max_end_addr + (uint64_t) current->heap->eaddr;
+
+            struct heap_table* paging_heap_table = heap_zalloc(multiheap->starting_heap, sizeof(struct heap_table));
+            paging_heap_table->entries = heap_zalloc(multiheap->starting_heap, current->heap->table->total * sizeof(HEAP_BLOCK_TABLE_ENTRY));
+            paging_heap_table->total = current->heap->table->total;
+
+            struct heap* paging_heap = heap_kalloc(multiheap->starting_heap, sizeof(struct heap));
+            heap_create(paging_heap, paging_heap_starting_address, paging_heap_ending_address, paging_heap_table);
+
+            paging_map_to(paging_current_descriptor(), paging_heap_starting_address, paging_heap_starting_address, paging_heap_ending_address, 0);
+
+            heap_callbacks_set(paging_heap, NULL, multiheap_paging_heap_free_block);
+            current->paging_heap = paging_heap;
+        }
+        current = current->next; 
+    }
+
+out:
+    return res;
+}
 void* multiheap_alloc(struct multiheap* multiheap, size_t size)
 {
     void* allocation_ptr = multiheap_alloc_first_pass(multiheap, size);

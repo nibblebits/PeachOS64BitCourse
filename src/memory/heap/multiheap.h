@@ -13,8 +13,14 @@ enum
 struct multiheap_single_heap
 {
     struct heap* heap;
+    struct heap* paging_heap;
     int flags;
     struct multiheap_single_heap* next;
+};
+
+enum
+{
+    MULTIHEAP_FLAG_IS_READY = 0x01
 };
 
 struct multiheap
@@ -26,6 +32,7 @@ struct multiheap
     struct multiheap_single_heap* first_multiheap;
 
     void* max_end_data_addr;
+    int flags;
     size_t total_heaps;
 };
 
