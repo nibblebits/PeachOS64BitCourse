@@ -131,6 +131,35 @@ int64_t heap_get_start_block(struct heap *heap, uintptr_t total_blocks)
     return bs;
 }
 
+size_t heap_allocation_block_count(struct heap* heap, void* starting_address)
+{
+    size_t count = 0;
+    struct heap_table* heap_table = heap->table;
+    int64_t starting_block = heap_address_to_block(heap, starting_address);
+    if (starting_block < 0)
+    {
+        goto out;
+    }
+
+    for (int64_t i = starting_block; i < (int64_t) heap_table->total; i++)
+    {
+        HEAP_BLOCK_TABLE_ENTRY entry = heap_table->entries[i];
+        if (entry & HEAP_BLOCK_TABLE_ENTRY_TAKEN)
+        {
+            count++;
+        }
+
+        // End of this block chain?
+        if (!(entry & HEAP_BLOCK_HAS_NEXT))
+        {
+            break;
+        }
+    }
+
+out:
+    return count;
+}
+
 void *heap_block_to_address(struct heap *heap, int64_t block)
 {
     return heap->saddr + (block * PEACHOS_HEAP_BLOCK_SIZE);

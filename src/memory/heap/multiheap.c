@@ -79,8 +79,76 @@ bool multiheap_is_address_virtual(struct multiheap* multiheap, void* ptr)
 void* multiheap_virtual_address_to_physical(struct multiheap* multiheap, void* ptr)
 {
     void* phys_addr = (void*)((uintptr_t) ptr - ((uintptr_t) multiheap->max_end_data_addr));
-    return phys_addr
+    return phys_addr;
 }
+
+struct multiheap_single_heap* multiheap_get_paging_heap_for_address(struct multiheap* multiheap, void* address)
+{
+    struct multiheap_single_heap* current = multiheap->first_multiheap;
+    while(current)
+    {
+        if (!multiheap_heap_allows_paging(current))
+        {
+            current = current->next;
+            continue;
+        }
+
+        if (heap_is_address_within_heap(current->paging_heap, address))
+        {
+            return current;
+        }
+        current = current->next;
+    }
+
+    return 0;
+}
+
+void multiheap_get_heap_and_paging_heap_for_address(struct multiheap* multiheap, void* ptr, struct multiheap_single_heap** heap_out, struct multiheap_single_heap** paging_heap_out, void** real_phys_addr)
+{
+    void* real_addr = ptr;
+    // Is this a paging address or not?
+    if (multiheap_is_address_virtual(multiheap, ptr))
+    {
+        // This is a paging address so lets get the heap thats its
+        // associated with
+        *paging_heap_out = multiheap_get_paging_heap_for_address(multiheap, ptr);
+
+        // Recalculate the real address
+        real_addr = multiheap_virtual_address_to_physical(multiheap, ptr);
+    }
+
+    *heap_out = multiheap_get_heap_for_address(multiheap, real_addr);
+    *real_phys_addr = real_addr;
+}
+
+size_t multiheap_allocation_block_count(struct multiheap* multiheap, void* ptr)
+{
+    struct multiheap_single_heap* paging_heap = NULL;
+    struct multiheap_single_heap* phys_heap = NULL;
+    struct multiheap_single_heap* heap_to_check = NULL;
+    void* real_phys_addr = NULL;
+    multiheap_get_heap_and_paging_heap_for_address(multiheap, ptr, &phys_heap, &paging_heap, &real_phys_addr);
+
+    if (paging_heap)
+    {
+        heap_to_check = paging_heap;
+    }
+
+    if (!heap_to_check)
+    {
+        // Not allocated from us.
+        return 0;
+    }
+
+    size_t total_blocks = heap_allocation_block_count(heap_to_check->heap, ptr);
+    return total_blocks;
+}
+
+size_t multiheap_allocation_byte_count(struct multiheap* multiheap, void* ptr)
+{
+    return multiheap_allocation_byte_count(multiheap, ptr) * PEACHOS_HEAP_BLOCK_SIZE;
+}
+
 int multiheap_add_heap(struct multiheap* multiheap, struct heap* heap, int flags)
 {
     struct multiheap_single_heap* new_heap = heap_zalloc(multiheap->starting_heap, sizeof(struct multiheap_single_heap));
