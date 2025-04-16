@@ -200,7 +200,39 @@ int multiheap_add(struct multiheap *multiheap, void *saddr, void *eaddr, int fla
     return multiheap_add_heap(multiheap, heap, flags);
 }
 
-void multiheap_free(struct multiheap* multiheap)
+void multiheap_free(struct multiheap* multiheap, void* ptr)
+{
+    struct multiheap_single_heap* paging_heap = NULL;
+    struct multiheap_single_heap* phys_heap = NULL;
+    void* real_phys_addr = NULL;
+
+    multiheap_get_heap_and_paging_heap_for_address(multiheap, ptr, &phys_heap, &paging_heap, &real_phys_addr);
+
+    if (paging_heap)
+    {
+        size_t total_blocks = heap_allocation_block_count(paging_heap->paging_heap, ptr);
+        size_t starting_block = heap_address_to_block(paging_heap->paging_heap, ptr);
+        size_t ending_block = starting_block+total_blocks;
+        for(size_t i = starting_block; i < ending_block; i++)
+        {
+            void* virtual_address_for_block = (void*)((uintptr_t) ptr) + (i * PEACHOS_HEAP_BLOCK_SIZE);
+            void* data_phys_addr = paging_get_physical_address(paging_current_descriptor(), virtual_address_for_block);
+
+            // We have the physical address now we can call multiheap_free again
+            multiheap_free(multiheap, data_phys_addr);
+        }
+
+
+        // Release the allocation in the paging heap
+        heap_free(paging_heap->paging_heap, ptr);
+    }
+    else if(phys_heap)
+    {
+        heap_free(phys_heap->heap, real_phys_addr);
+    }
+
+}
+void multiheap_free_heap(struct multiheap* multiheap)
 {
     struct multiheap_single_heap* current = multiheap->first_multiheap;
     while(current != 0)

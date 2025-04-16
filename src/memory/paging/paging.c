@@ -240,6 +240,21 @@ out:
     return res;
 }
 
+void* paging_get_physical_address(struct paging_desc* desc, void* virtual_address)
+{
+    struct paging_desc_entry* desc_entry = paging_get(desc, virtual_address);
+    if (!desc_entry)
+    {
+        return NULL;
+    }
+
+    uint64_t physical_base = ((uint64_t) desc_entry->address) << 12;
+    uint64_t offset = ((uint64_t) virtual_address) & 0xFFF;
+
+    uint64_t full_address = physical_base + offset;
+    return (void*) full_address;  
+}
+
 // OLD CODE BELOW
 //==========================================================
 

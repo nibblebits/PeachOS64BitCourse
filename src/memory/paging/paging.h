@@ -73,6 +73,7 @@ struct paging_desc
     paging_map_level_t level;
 } __attribute__((packed));
 
+void* paging_get_physical_address(struct paging_desc* desc, void* virtual_address);
 bool paging_is_aligned(void* addr);
 struct paging_desc* paging_current_descriptor();
 int paging_map_e820_memory_regions(struct paging_desc* desc);

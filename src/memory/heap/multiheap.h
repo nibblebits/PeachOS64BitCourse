@@ -41,5 +41,6 @@ int multiheap_add(struct multiheap* multiheap, void* saddr, void* eaddr, int fla
 void* multiheap_alloc(struct multiheap* multiheap, size_t size);
 void* multiheap_palloc(struct multiheap* multiheap, size_t size);
 struct multiheap* multiheap_new(struct heap* starting_heap);
+void multiheap_free(struct multiheap* multiheap, void* ptr);
 
 #endif
