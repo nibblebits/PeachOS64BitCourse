@@ -77,6 +77,8 @@ void* paging_get_physical_address(struct paging_desc* desc, void* virtual_addres
 bool paging_is_aligned(void* addr);
 struct paging_desc* paging_current_descriptor();
 int paging_map_e820_memory_regions(struct paging_desc* desc);
+struct paging_desc_entry* paging_get(struct paging_desc* desc, void* virt);
+
 int paging_map_to(struct paging_desc* desc, void* virt, void* phys, void* phys_end, int flags);
 int paging_map_range(struct paging_desc* desc, void* virt, void* phys, size_t count, int flags);
 int paging_map(struct paging_desc* desc, void* virt, void* phys, int flags);
