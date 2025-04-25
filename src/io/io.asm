@@ -1,50 +1,45 @@
+[BITS 64]
 section .asm
 
 global insb
 global insw
+global insdw
 global outb
 global outw
+global outdw
 
 insb:
-    push ebp
-    mov ebp, esp
-
-    xor eax, eax
-    mov edx, [ebp+8]
+    xor rax, rax
+    mov dx, di
     in al, dx
-
-    pop ebp
     ret
 
 insw:
-    push ebp
-    mov ebp, esp
-
-    xor eax, eax
-    mov edx, [ebp+8]
+    xor rax, rax
+    mov dx, di
     in ax, dx
-
-    pop ebp
     ret
 
+insdw: 
+    xor rax, rax
+    mov dx, di
+    in eax, dx
+    ret 
+
 outb:
-    push ebp
-    mov ebp, esp
-
-    mov eax, [ebp+12]
-    mov edx, [ebp+8]
+    mov ax, si
+    mov dx, di
     out dx, al
-
-    pop ebp
     ret
 
 outw:
-    push ebp
-    mov ebp, esp
+    mov rax, rsi
+    mov rdx, rdi
+    out dx, ax 
+    ret
 
-    mov eax, [ebp+12]
-    mov edx, [ebp+8]
-    out dx, ax
-
-    pop ebp
+outdw:
+    mov rax, rsi
+    mov rdx, rdi
+    out dx, eax
     ret
