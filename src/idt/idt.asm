@@ -12,6 +12,31 @@ global disable_interrupts
 global isr80h_wrapper
 global interrupt_pointer_table
 
+temp_rsp_storage: dq 0x00
+%macro pushad_macro 0
+    mov qword [temp_rsp_storage], rsp
+    push rax
+    push rcx
+    push rdx
+    push rbx
+    push qword [temp_rsp_storage]
+    push rbp
+    push rsi
+    push rdi
+%endmacro
+
+%macro popad_macro 0
+    pop rdi
+    pop rsi
+    pop rbp
+    pop qword[temp_rsp_storage]
+    pop rbx
+    pop rdx
+    pop rcx
+    pop rax
+    mov rsp, [temp_rsp_storage]
+%endmacro
+
 enable_interrupts:
     sti
     ret
@@ -32,9 +57,9 @@ idt_load:
 
 
 no_interrupt:
-    pushad
+    pushad_macro
     call no_interrupt_handler
-    popad
+    popad_macro
     iret
 
 %macro interrupt 1
@@ -48,13 +73,13 @@ no_interrupt:
         ; uint32_t sp;
         ; uint32_t ss;
         ; Pushes the general purpose registers to the stack
-        pushad
+        pushad_macro
         ; Interrupt frame end
         push esp
         push dword %1
         call interrupt_handler
         add esp, 8
-        popad
+        popad_macro
         iret
 %endmacro
 
@@ -73,7 +98,7 @@ isr80h_wrapper:
     ; uint32_t sp;
     ; uint32_t ss;
     ; Pushes the general purpose registers to the stack
-    pushad
+    pushad_macro
     
     ; INTERRUPT FRAME END
 
@@ -87,7 +112,7 @@ isr80h_wrapper:
     add esp, 8
 
     ; Restore general purpose registers for user land
-    popad
+    popad_macro
     mov eax, [tmp_res]
     iretd
 
