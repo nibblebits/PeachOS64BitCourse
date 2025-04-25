@@ -159,12 +159,9 @@ void kernel_main()
 
     paging_switch(kernel_paging_desc);
 
-    for(;;)
-    {
-        if (!kmalloc(4096)) break;
-    }
+    // The multi-heap is ready
+    kheap_post_paging();
 
-    print("Memory wasted\n");
     //  data[0] = 'M';
     //  print(data);
 

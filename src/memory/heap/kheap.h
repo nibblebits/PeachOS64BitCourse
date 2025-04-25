@@ -12,4 +12,6 @@ void* kpzalloc(size_t size);
 void kfree(void* ptr);
 struct heap* kheap_get();
 
+void kheap_post_paging();
+
 #endif
