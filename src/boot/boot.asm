@@ -140,7 +140,7 @@ load_memory_map:
 
     ; For the loading...
     mov eax, 1
-    mov ecx, 100
+    mov ecx, 250
     mov edi, 0x0100000
 
 
