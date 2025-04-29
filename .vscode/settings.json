@@ -3,6 +3,7 @@
         "*.tcc": "c",
         "algorithm": "c",
         "fstream": "c",
-        "kernel.h": "c"
+        "kernel.h": "c",
+        "stdint.h": "c"
     }
 }

@@ -2,6 +2,7 @@
 
 global _start
 global kernel_registers
+global div_test
 extern kernel_main
 
 ; Segment Selectors
@@ -74,6 +75,11 @@ long_mode_entry:
 
     jmp $
 
+
+div_test:
+    mov rax, 0
+    idiv rax 
+    ret 
 
 ; Global descriptor table (GDT)
 align 8 
