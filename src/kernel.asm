@@ -120,6 +120,22 @@ gdt:
     db 0x00             ; Long mode data segment has flag to zero
     db 0x00             ; Base address high
 
+
+    ; 64-bit user code segment descriptor
+    dw 0x0000           ; Segment limit low
+    dw 0x0000           ; Base address low
+    db 0x00             ; Base address middle
+    db 0xFA             ; Access byte data segment, read/write, present, user mode
+    db 0x20             ; Long mode data segment has flag to zero
+    db 0x00             ; Base address high         ; 
+
+    ; 64-bit user data segment
+    dw 0x0000           ; Segment limit low
+    dw 0x0000           ; Base address low
+    db 0x00             ; Base address middle
+    db 0xF2             ; Access byte data segment, read/write, present, user mode
+    db 0x00             ; Long mode data segment has flag to zero
+    db 0x00             ; Base address high
 gdt_end:
 
 gdt_descriptor:
