@@ -7,19 +7,19 @@
 struct interrupt_frame;
 struct registers
 {
-    uint32_t edi;
-    uint32_t esi;
-    uint32_t ebp;
-    uint32_t ebx;
-    uint32_t edx;
-    uint32_t ecx;
-    uint32_t eax;
+    uint64_t rdi;
+    uint64_t rsi;
+    uint64_t rbp;
+    uint64_t rbx;
+    uint64_t rdx;
+    uint64_t rcx;
+    uint64_t rax;
 
-    uint32_t ip;
-    uint32_t cs;
-    uint32_t flags;
-    uint32_t esp;
-    uint32_t ss;
+    uint64_t ip;
+    uint64_t cs;
+    uint64_t flags;
+    uint64_t rsp;
+    uint64_t ss;
 };
 
 
@@ -27,9 +27,9 @@ struct process;
 struct task
 {
     /**
-     * The page directory of the task
+     * The page directory of the task.
      */
-    struct paging_4gb_chunk* page_directory;
+    struct paging_desc* paging_desc;
 
     // The registers of the task when the task is not running
     struct registers registers;
@@ -65,4 +65,6 @@ void* task_get_stack_item(struct task* task, int index);
 void* task_virtual_address_to_physical(struct task* task, void* virtual_address);
 void task_next();
 
+struct paging_desc* task_paging_desc(struct task* task);
+struct paging_desc* task_current_paging_desc();
 #endif
