@@ -73,7 +73,7 @@ void* process_malloc(struct process* process, size_t size)
         goto out_err;
     }
 
-    int res = paging_map_to(process->task->page_directory, ptr, ptr, paging_align_address(ptr+size), PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
+    int res = paging_map_to(process->task->paging_desc, ptr, ptr, paging_align_address(ptr+size), PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
     if (res < 0)
     {
         goto out_err;
@@ -312,7 +312,7 @@ void process_free(struct process* process, void* ptr)
         return;
     }
 
-    int res = paging_map_to(process->task->page_directory, allocation->ptr, allocation->ptr, paging_align_address(allocation->ptr+allocation->size), 0x00);
+    int res = paging_map_to(process->task->paging_desc, allocation->ptr, allocation->ptr, paging_align_address(allocation->ptr+allocation->size), 0x00);
     if (res < 0)
     {
         return;
@@ -374,18 +374,20 @@ out:
 
 static int process_load_elf(const char* filename, struct process* process)
 {
-    int res = 0;
-    struct elf_file* elf_file = 0;
-    res = elf_load(filename, &elf_file);
-    if (ISERR(res))
-    {
-        goto out;
-    }
+    // Temporary disabled.
+    return -EINFORMAT;
+//     int res = 0;
+//     struct elf_file* elf_file = 0;
+//     res = elf_load(filename, &elf_file);
+//     if (ISERR(res))
+//     {
+//         goto out;
+//     }
 
-    process->filetype = PROCESS_FILETYPE_ELF;
-    process->elf_file = elf_file;
-out:
-    return res;
+//     process->filetype = PROCESS_FILETYPE_ELF;
+//     process->elf_file = elf_file;
+// out:
+//     return res;
 }
 static int process_load_data(const char* filename, struct process* process)
 {
@@ -402,33 +404,34 @@ static int process_load_data(const char* filename, struct process* process)
 int process_map_binary(struct process* process)
 {
     int res = 0;
-    paging_map_to(process->task->page_directory, (void*) PEACHOS_PROGRAM_VIRTUAL_ADDRESS, process->ptr, paging_align_address(process->ptr + process->size), PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL | PAGING_IS_WRITEABLE);
+    paging_map_to(process->task->paging_desc, (void*) PEACHOS_PROGRAM_VIRTUAL_ADDRESS, process->ptr, paging_align_address(process->ptr + process->size), PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL | PAGING_IS_WRITEABLE);
     return res;
 }
 
 static int process_map_elf(struct process* process)
 {
     int res = 0;
+    return -EINVARG;
 
-    struct elf_file* elf_file = process->elf_file;
-    struct elf_header* header = elf_header(elf_file);
-    struct elf32_phdr* phdrs = elf_pheader(header);
-    for (int i = 0; i < header->e_phnum; i++)
-    {
-        struct elf32_phdr* phdr = &phdrs[i];
-        void* phdr_phys_address = elf_phdr_phys_address(elf_file, phdr);
-        int flags = PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL;
-        if (phdr->p_flags & PF_W)
-        {
-            flags |= PAGING_IS_WRITEABLE;
-        }
-        res = paging_map_to(process->task->page_directory, paging_align_to_lower_page((void*)phdr->p_vaddr), paging_align_to_lower_page(phdr_phys_address), paging_align_address(phdr_phys_address+phdr->p_memsz), flags);
-        if (ISERR(res))
-        {
-            break;
-        }
-    }
-    return res;
+    // struct elf_file* elf_file = process->elf_file;
+    // struct elf_header* header = elf_header(elf_file);
+    // struct elf32_phdr* phdrs = elf_pheader(header);
+    // for (int i = 0; i < header->e_phnum; i++)
+    // {
+    //     struct elf32_phdr* phdr = &phdrs[i];
+    //     void* phdr_phys_address = elf_phdr_phys_address(elf_file, phdr);
+    //     int flags = PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL;
+    //     if (phdr->p_flags & PF_W)
+    //     {
+    //         flags |= PAGING_IS_WRITEABLE;
+    //     }
+    //     res = paging_map_to(process->task->paging_desc, paging_align_to_lower_page((void*)phdr->p_vaddr), paging_align_to_lower_page(phdr_phys_address), paging_align_address(phdr_phys_address+phdr->p_memsz), flags);
+    //     if (ISERR(res))
+    //     {
+    //         break;
+    //     }
+    // }
+    // return res;
 }
 int process_map_memory(struct process* process)
 {
