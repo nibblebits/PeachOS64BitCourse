@@ -1,4 +1,4 @@
-[BITS 32]
+[BITS 64]
 section .asm
 
 global restore_general_purpose_registers
@@ -7,63 +7,35 @@ global user_registers
 
 ; void task_return(struct registers* regs);
 task_return:
-    mov ebp, esp
-    ; PUSH THE DATA SEGMENT (SS WILL BE FINE)
-    ; PUSH THE STACK ADDRESS
-    ; PUSH THE FLAGS
-    ; PUSH THE CODE SEGMENT
-    ; PUSH IP
+    push qword [rdi+88] ; SS
+    push qword [rdi+80] ; RSP
+    mov rax, [rdi+72]   ; RFLAGS
+    or rax, 0x200       ; Set IF Bit
+    push rax
 
-    ; Let's access the structure passed to us
-    mov ebx, [ebp+4]
-    ; push the data/stack selector
-    push dword [ebx+44]
-    ; Push the stack pointer
-    push dword [ebx+40]
-
-    ; Push the flags
-    mov eax, [ebx+36]
-    or eax, 0x200 ; interrupt enable flag set
-    push eax
-
-    ; Push the code segment
-    push dword [ebx+32]
-
-    ; Push the IP to execute
-    push dword [ebx+28]
-
-    ; Setup some segment registers
-    mov ax, [ebx+44]
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-
-    push dword [ebp+4]
+    push qword 0x2B     ; User data segment
+    push qword [rdi+56] ; RIP
     call restore_general_purpose_registers
-    add esp, 4
 
-    ; Let's leave kernel land and execute in user land!
-    iretd
+    ; Leave the kernel and jump to user land.
+    iretq 
     
 ; void restore_general_purpose_registers(struct registers* regs);
 restore_general_purpose_registers:
-    push ebp
-    mov ebp, esp
-    mov ebx, [ebp+8]
-    mov edi, [ebx]
-    mov esi, [ebx+4]
-    mov ebp, [ebx+8]
-    mov edx, [ebx+16]
-    mov ecx, [ebx+20]
-    mov eax, [ebx+24]
-    mov ebx, [ebx+12]
-    add esp, 4
+    mov rsi, [rdi+8]
+    mov rbp, [rdi+16]
+    mov rbx, [rdi+24]
+    mov rdx, [rdi+32]
+    mov rcx, [rdi+40]
+    mov rax, [rdi+48]
+
+    ; Finally RDI
+    mov rdi, [rdi]
     ret
 
 ; void user_registers()
 user_registers:
-    mov ax, 0x23
+    mov ax, 0x2B ; User data segment | privilaged bit
     mov ds, ax
     mov es, ax
     mov fs, ax
