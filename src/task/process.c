@@ -328,50 +328,49 @@ void process_free(struct process* process, void* ptr)
 
 static int process_load_binary(const char* filename, struct process* process)
 {
-    return -1;
-//     void* program_data_ptr = 0x00;
-//     int res = 0;
-//     int fd = fopen(filename, "r");
-//     if (!fd)
-//     {
-//         res = -EIO;
-//         goto out;
-//     }
+    void* program_data_ptr = 0x00;
+    int res = 0;
+    int fd = fopen(filename, "r");
+    if (!fd)
+    {
+        res = -EIO;
+        goto out;
+    }
 
-//     struct file_stat stat;
-//     res = fstat(fd, &stat);
-//     if (res != PEACHOS_ALL_OK)
-//     {
-//         goto out;
-//     }
+    struct file_stat stat;
+    res = fstat(fd, &stat);
+    if (res != PEACHOS_ALL_OK)
+    {
+        goto out;
+    }
 
-//     program_data_ptr = kzalloc(stat.filesize);
-//     if (!program_data_ptr)
-//     {
-//         res = -ENOMEM;
-//         goto out;
-//     }
+    program_data_ptr = kzalloc(stat.filesize);
+    if (!program_data_ptr)
+    {
+        res = -ENOMEM;
+        goto out;
+    }
 
-//     if (fread(program_data_ptr, stat.filesize, 1, fd) != 1)
-//     {
-//         res = -EIO;
-//         goto out;
-//     }
+    if (fread(program_data_ptr, stat.filesize, 1, fd) != 1)
+    {
+        res = -EIO;
+        goto out;
+    }
 
-//     process->filetype = PROCESS_FILETYPE_BINARY;
-//     process->ptr = program_data_ptr;
-//     process->size = stat.filesize;
+    process->filetype = PROCESS_FILETYPE_BINARY;
+    process->ptr = program_data_ptr;
+    process->size = stat.filesize;
 
-// out:
-//     if (res < 0)
-//     {
-//         if (program_data_ptr)
-//         {
-//             kfree(program_data_ptr);
-//         }
-//     }
-//     fclose(fd);
-//     return res;
+out:
+    if (res < 0)
+    {
+        if (program_data_ptr)
+        {
+            kfree(program_data_ptr);
+        }
+    }
+    fclose(fd);
+    return res;
 }
 
 static int process_load_elf(const char* filename, struct process* process)
