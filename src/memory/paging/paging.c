@@ -3,9 +3,17 @@
 #include "memory/memory.h"
 #include "memory/heap/heap.h"
 #include "status.h"
+#include "kernel.h"
 
 
 static struct paging_desc* current_paging_desc = 0;
+static bool paging_null_entry(struct paging_desc_entry* entry)
+{
+    struct paging_desc_entry null_desc = {0};
+    return memcmp(entry, &null_desc, sizeof(struct paging_desc_entry)) == 0;
+}
+
+
 struct paging_pml_entries* paging_pml4_entries_new()
 {
     struct paging_pml_entries* entries_desc = 
@@ -136,11 +144,6 @@ bool paging_is_aligned(void* addr)
     return ((uintptr_t) addr % PAGING_PAGE_SIZE) == 0;
 }
 
-static bool paging_null_entry(struct paging_desc_entry* entry)
-{
-    struct paging_desc_entry null_desc = {0};
-    return memcmp(entry, &null_desc, sizeof(struct paging_desc_entry)) == 0;
-}
 
 int paging_map(struct paging_desc* desc, void* virt, void* phys, int flags)
 {
