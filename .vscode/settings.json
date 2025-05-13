@@ -4,6 +4,7 @@
         "algorithm": "c",
         "fstream": "c",
         "kernel.h": "c",
-        "stdint.h": "c"
+        "stdint.h": "c",
+        "type_traits": "c"
     }
 }
