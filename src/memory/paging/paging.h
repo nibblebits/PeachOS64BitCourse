@@ -90,6 +90,8 @@ void paging_load_directory(uintptr_t* directory);
 void paging_invalidate_tlb_entry(void* addr);
 void paging_switch(struct paging_desc* desc);
 
+void paging_desc_free(struct paging_desc* desc);
+
 
 
 // struct paging_4gb_chunk

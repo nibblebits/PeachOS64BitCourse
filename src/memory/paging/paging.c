@@ -13,6 +13,70 @@ struct paging_pml_entries* paging_pml4_entries_new()
     return entries_desc;
 }
 
+void paging_desc_entry_free(struct paging_desc_entry* table_entry, paging_map_level_t level)
+{
+    if(paging_null_entry(table_entry))
+    {
+        return;
+    }
+
+    if (level == 0)
+    {
+        panic("The level must be a page table entry\n");
+    }
+
+    if (level > PAGING_MAP_LEVEL_4)
+    {
+        panic("Level five and higher is not supported\n");
+    }
+
+    if (level > 1)
+    {
+        // Loop through the child tables
+        for(int i = 0; i < PAGING_TOTAL_ENTRIES_PER_TABLE; i++)
+        {
+            struct paging_desc_entry* entry = &table_entry[i];
+            if (!paging_null_entry(entry))
+            {
+                struct paging_desc_entry* child_entry = 
+                    (struct paging_desc_entry*)((uint64_t)(entry->address) << 12);
+                if (child_entry)
+                {
+                    paging_desc_entry_free(child_entry, level-1);
+                }
+            }
+        }
+    }
+
+    kfree(table_entry);
+}
+void paging_desc_free(struct paging_desc* desc)
+{
+    paging_map_level_t level = desc->level;
+    // loop through all entires and free
+    for(int i = 0; i < PAGING_TOTAL_ENTRIES_PER_TABLE; i++)
+    {
+        // Free all the root entries PML4 | 5
+        struct paging_desc_entry* entry = &desc->pml->entries[i];
+        if(!paging_null_entry(entry))
+        {
+            struct paging_desc_entry* child_entry = 
+                        (struct paging_desc_entry*)((uint64_t)(entry->address) << 12);
+            if (child_entry)
+            {
+                // MInusone so the level goes down once.
+                paging_desc_entry_free(child_entry, level-1);
+            }
+        }
+    }
+
+    // Free the pml structure
+    kfree(desc->pml);
+
+    // Free the descriptor
+    kfree(desc);
+}
+
 static bool paging_map_level_is_valid(paging_map_level_t level)
 {
     // Map level 5 isnt supported at the moment..
