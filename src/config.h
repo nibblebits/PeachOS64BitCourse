@@ -6,7 +6,7 @@
 
 #define KERNEL_LONG_MODE_CODE_SELECTOR 0x18
 
-
+#define TSS_DESCRIPTOR_TYPE 0x89  // 0x9 = 64-bit, bit 7 present
 #define PEACHOS_TOTAL_INTERRUPTS 512
 
 // Where to find the E820 records
