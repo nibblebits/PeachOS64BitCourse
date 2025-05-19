@@ -3,6 +3,7 @@
 global _start
 global kernel_registers
 global div_test
+global gdt
 extern kernel_main
 
 ; Segment Selectors
