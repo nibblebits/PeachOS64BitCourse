@@ -191,6 +191,8 @@ void kernel_main()
     struct tss_desc_64* tssdesc = (struct tss_desc_64*)&gdt[KERNEL_LONG_MODE_TSS_GDT_INDEX];
     gdt_set_tss(tssdesc, &tss, sizeof(tss)-1, TSS_DESCRIPTOR_TYPE, 0x00);
     
+    // load the tss
+    tss_load(KERNEL_LONG_MODE_TSS_SELECTOR);
 
     // Register isr80h commands
     isr80h_register_commands();
