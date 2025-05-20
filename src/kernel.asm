@@ -137,6 +137,29 @@ gdt:
     db 0xF2             ; Access byte data segment, read/write, present, user mode
     db 0x00             ; Long mode data segment has flag to zero
     db 0x00             ; Base address high
+
+
+    ; TSS IS IN TWO ENTRIES FOR 64 BIT MODE
+    ; 64-bit TSS Segment descriptor
+    ; NULL because it wil be initialized in the C code 
+    dw 0x0000           ; Segment limit low
+    dw 0x0000           ; Base address low
+    db 0x00             ; Base address middle
+    db 0x00             ; Access byte data segment, read/write, present, user mode
+    db 0x00             ; Long mode data segment has flag to zero
+    db 0x00             ; Base address high
+
+    ; 64-bit TSS Segment descriptor 2
+    ; NULL because it wil be initialized in the C code 
+    dw 0x0000           ; Segment limit low
+    dw 0x0000           ; Base address low
+    db 0x00             ; Base address middle
+    db 0x00             ; Access byte data segment, read/write, present, user mode
+    db 0x00             ; Long mode data segment has flag to zero
+    db 0x00             ; Base address high
+
+
+
 gdt_end:
 
 gdt_descriptor:
