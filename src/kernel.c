@@ -8,9 +8,9 @@
 #include "memory/memory.h"
 // #include "keyboard/keyboard.h"
 #include "string/string.h"
-// #include "isr80h/isr80h.h"
-// #include "task/task.h"
-// #include "task/process.h"
+#include "isr80h/isr80h.h"
+#include "task/task.h"
+#include "task/process.h"
 // #include "fs/file.h"
 // #include "disk/disk.h"
 // #include "fs/pparser.h"
@@ -191,6 +191,9 @@ void kernel_main()
     struct tss_desc_64* tssdesc = (struct tss_desc_64*)&gdt[KERNEL_LONG_MODE_TSS_GDT_INDEX];
     gdt_set_tss(tssdesc, &tss, sizeof(tss)-1, TSS_DESCRIPTOR_TYPE, 0x00);
     
+
+    // Register isr80h commands
+    isr80h_register_commands();
     //  data[0] = 'M';
     //  print(data);
 
