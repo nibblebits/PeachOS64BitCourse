@@ -6,15 +6,15 @@
 #include "memory/heap/heap.h"
 #include "memory/paging/paging.h"
 #include "memory/memory.h"
-// #include "keyboard/keyboard.h"
+#include "keyboard/keyboard.h"
 #include "string/string.h"
 #include "isr80h/isr80h.h"
 #include "task/task.h"
 #include "task/process.h"
-// #include "fs/file.h"
-// #include "disk/disk.h"
-// #include "fs/pparser.h"
-// #include "disk/streamer.h"
+#include "fs/file.h"
+#include "disk/disk.h"
+#include "fs/pparser.h"
+#include "disk/streamer.h"
 #include "task/tss.h"
 #include "gdt/gdt.h"
 
@@ -173,7 +173,15 @@ void kernel_main()
 
     // The multi-heap is ready
     kheap_post_paging();
+
+    // Enable interrupt descriptor table
     idt_init();
+
+    // Enable fs functionality
+    fs_init();
+
+    // Enable the disks
+    disk_search_and_init();
 
     // Allocate a 1 MB stack for the kernel IDT 
     size_t stack_size = 1024*1024;
