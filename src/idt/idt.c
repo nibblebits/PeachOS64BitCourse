@@ -28,14 +28,14 @@ void no_interrupt_handler()
 
 void interrupt_handler(int interrupt, struct interrupt_frame* frame)
 {
-    // kernel_page();
-    // if (interrupt_callbacks[interrupt] != 0)
-    // {
-    //     task_current_save_state(frame);
-    //     interrupt_callbacks[interrupt](frame);
-    // }
+    kernel_page();
+    if (interrupt_callbacks[interrupt] != 0)
+    {
+        task_current_save_state(frame);
+        interrupt_callbacks[interrupt](frame);
+    }
 
-    // task_page();
+    task_page();
     outb(0x20, 0x20);
 }
 
@@ -66,16 +66,17 @@ void idt_set(int interrupt_no, void* address)
 
 void idt_handle_exception()
 {
+    panic("Panic Exception\n");
     // process_terminate(task_current()->process);
     // task_next();
 }
 
 void idt_clock()
 {
-    // outb(0x20, 0x20);
-    
-    // // Switch to the next task
-    // task_next();
+    outb(0x20, 0x20);
+    print("test\n");
+    // Switch to the next task
+    task_next();
 }
 
 void idt_init()
@@ -99,7 +100,7 @@ void idt_init()
     }
     
 
-    //idt_register_interrupt_callback(0x20, idt_clock);
+    idt_register_interrupt_callback(0x20, idt_clock);
 
     // Load the interrupt descriptor table
     idt_load(&idtr_descriptor);
@@ -154,9 +155,9 @@ void* isr80h_handle_command(int command, struct interrupt_frame* frame)
 void* isr80h_handler(int command, struct interrupt_frame* frame)
 {
     void* res = 0;
-    // kernel_page();
-    // task_current_save_state(frame);
-    // res = isr80h_handle_command(command, frame);
-    // task_page();
+    kernel_page();
+    task_current_save_state(frame);
+    res = isr80h_handle_command(command, frame);
+    task_page();
     return res;
 }
