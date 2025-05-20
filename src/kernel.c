@@ -194,8 +194,11 @@ void kernel_main()
     // load the tss
     tss_load(KERNEL_LONG_MODE_TSS_SELECTOR);
 
+    print("tss load was fine\n");
     // Register isr80h commands
     isr80h_register_commands();
+    print("register isr80h\n");
+
     //  data[0] = 'M';
     //  print(data);
 
