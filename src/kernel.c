@@ -207,6 +207,9 @@ void kernel_main()
     isr80h_register_commands();
     print("register isr80h\n");
 
+    // Initialize the keyboard
+    keyboard_init();
+
     //  data[0] = 'M';
     //  print(data);
 

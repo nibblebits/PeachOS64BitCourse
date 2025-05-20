@@ -3,7 +3,7 @@ FILES = ./build/kernel.asm.o ./build/kernel.o ./build/isr80h/isr80h.o ./build/is
 INCLUDES = -I./src
 FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
 
-all: ./bin/boot.bin ./bin/kernel.bin
+all: ./bin/boot.bin ./bin/kernel.bin user_programs
 	rm -rf ./bin/os.bin
 	dd if=./bin/boot.bin >> ./bin/os.bin
 	dd if=./bin/kernel.bin >> ./bin/os.bin
@@ -11,8 +11,9 @@ all: ./bin/boot.bin ./bin/kernel.bin
 	sudo mount -t vfat ./bin/os.bin /mnt/d
 	# Copy a file over
 	sudo cp ./hello.txt /mnt/d
-	sudo cp ./programs/blank/blank.elf /mnt/d
-	sudo cp ./programs/shell/shell.elf /mnt/d
+	sudo cp ./programs/simple/build/simple.bin /mnt/d
+#	sudo cp ./programs/blank/blank.elf /mnt/d
+#	sudo cp ./programs/shell/shell.elf /mnt/d
 
 	sudo umount /mnt/d
 ./bin/kernel.bin: $(FILES)
@@ -126,14 +127,17 @@ all: ./bin/boot.bin ./bin/kernel.bin
 	x86_64-elf-gcc $(INCLUDES) -I./src/string $(FLAGS) -std=gnu99 -c ./src/string/string.c -o ./build/string/string.o
 
 user_programs:
-	cd ./programs/stdlib && $(MAKE) all
-	cd ./programs/blank && $(MAKE) all
-	cd ./programs/shell && $(MAKE) all
+	cd ./programs/simple && $(MAKE) all
+#	cd ./programs/stdlib && $(MAKE) all
+#	cd ./programs/blank && $(MAKE) all
+#	cd ./programs/shell && $(MAKE) all
 
 user_programs_clean:
-	cd ./programs/stdlib && $(MAKE) clean
-	cd ./programs/blank && $(MAKE) clean
-	cd ./programs/shell && $(MAKE) clean
+	cd ./programs/simple && $(MAKE) clean
+
+# cd ./programs/stdlib && $(MAKE) clean
+# cd ./programs/blank && $(MAKE) clean
+# cd ./programs/shell && $(MAKE) clean
 
 clean: 
 	rm -rf ./bin/boot.bin
