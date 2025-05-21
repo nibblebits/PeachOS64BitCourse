@@ -210,6 +210,17 @@ void kernel_main()
     // Initialize the keyboard
     keyboard_init();
 
+    print("Loading program...\n");
+    struct process* process = 0;
+    int res = process_load_switch("0:/simple.bin", &process);
+    if (res != PEACHOS_ALL_OK)
+    {
+        panic("Failed to load user program\n");
+    }
+
+    // Drop to user land
+    task_run_first_ever_task();
+
     //  data[0] = 'M';
     //  print(data);
 
