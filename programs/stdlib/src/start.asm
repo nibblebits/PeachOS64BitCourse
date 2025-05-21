@@ -1,4 +1,4 @@
-[BITS 32]
+[BITS 64]
 
 global _start
 extern c_start

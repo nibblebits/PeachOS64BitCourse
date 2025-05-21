@@ -1,4 +1,4 @@
-[BITS 32]
+[BITS 64]
 
 section .asm
 
@@ -14,96 +14,69 @@ global peachos_exit:function
 
 ; void print(const char* filename)
 print:
-    push ebp
-    mov ebp, esp
-    push dword[ebp+8]
-    mov eax, 1 ; Command print
+    push qword rdi
+    mov rax, 1 ; Command print
     int 0x80
-    add esp, 4
-    pop ebp
+    add rsp, 8
     ret
 
 ; int peachos_getkey()
 peachos_getkey:
-    push ebp
-    mov ebp, esp
-    mov eax, 2 ; Command getkey
+    mov rax, 2 ; Command getkey
     int 0x80
-    pop ebp
     ret
 
 ; void peachos_putchar(char c)
 peachos_putchar:
-    push ebp
-    mov ebp, esp
-    mov eax, 3 ; Command putchar
-    push dword [ebp+8] ; Variable "c"
+    mov rax, 3 ; Command putchar
+    push qword rdi ; Variable "c"
     int 0x80
-    add esp, 4
-    pop ebp
+    add rsp, 8
     ret
 
 ; void* peachos_malloc(size_t size)
 peachos_malloc:
-    push ebp
-    mov ebp, esp
-    mov eax, 4 ; Command malloc (Allocates memory for the process)
-    push dword[ebp+8] ; Variable "size"
+    mov rax, 4 ; Command malloc (Allocates memory for the process)
+    push qword rdi ; Variable "size"
     int 0x80
-    add esp, 4
-    pop ebp
+    add rsp, 8
     ret
 
 ; void peachos_free(void* ptr)
 peachos_free:
-    push ebp
-    mov ebp, esp
-    mov eax, 5 ; Command 5 free (Frees the allocated memory for this process)
-    push dword[ebp+8] ; Variable "ptr"
+    mov rax, 5 ; Command 5 free (Frees the allocated memory for this process)
+    push qword rdi ; Variable "ptr"
     int 0x80
-    add esp, 4
-    pop ebp
+    add rsp, 8
     ret
 
 ; void peachos_process_load_start(const char* filename)
 peachos_process_load_start:
-    push ebp
-    mov ebp, esp
-    mov eax, 6 ; Command 6 process load start ( stars a process )
-    push dword[ebp+8] ; Variable "filename"
+    mov rax, 6 ; Command 6 process load start ( stars a process )
+    push qword rdi ; Variable "filename"
     int 0x80
-    add esp, 4
-    pop ebp
+    add rsp, 8
     ret
 
 ; int peachos_system(struct command_argument* arguments)
 peachos_system:
-    push ebp
-    mov ebp, esp
-    mov eax, 7 ; Command 7 process_system ( runs a system command based on the arguments)
-    push dword[ebp+8] ; Variable "arguments"
+    mov rax, 7 ; Command 7 process_system ( runs a system command based on the arguments)
+    push qword rdi  ; Variable "arguments"
     int 0x80
-    add esp, 4
-    pop ebp
+    add rsp, 8
     ret
 
 
 ; void peachos_process_get_arguments(struct process_arguments* arguments)
 peachos_process_get_arguments:
-    push ebp
-    mov ebp, esp
-    mov eax, 8 ; Command 8 Gets the process arguments
-    push dword[ebp+8] ; Variable arguments
+    mov rax, 8 ; Command 8 Gets the process arguments
+    push qword rdi ; Variable arguments
     int 0x80
-    add esp, 4
-    pop ebp
+    add rsp, 8
     ret
 
 ; void peachos_exit()
 peachos_exit:
-    push ebp
-    mov ebp, esp
-    mov eax, 9 ; Command 9 process exit
+    mov rax, 9 ; Command 9 process exit
     int 0x80
-    pop ebp
     ret
