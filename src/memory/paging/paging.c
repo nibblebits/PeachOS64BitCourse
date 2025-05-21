@@ -175,6 +175,7 @@ int paging_map(struct paging_desc* desc, void* virt, void* phys, int flags)
         pml4_entry->address = ((uintptr_t) new_pdpt) >> 12;
         pml4_entry->present = 1;
         pml4_entry->read_write = 1;
+        pml4_entry->user_supervisor = 1;
     }
 
     struct paging_desc_entry* pdpt_entries 
@@ -187,6 +188,7 @@ int paging_map(struct paging_desc* desc, void* virt, void* phys, int flags)
         pdpt_entry->address = ((uintptr_t) new_pd) >> 12;
         pdpt_entry->present = 1;
         pdpt_entry->read_write = 1;
+        pdpt_entry->user_supervisor = 1;
     }
 
     struct paging_desc_entry* pd_entries = 
@@ -201,6 +203,7 @@ int paging_map(struct paging_desc* desc, void* virt, void* phys, int flags)
         pd_entry->address = ((uintptr_t) new_pt) >> 12;
         pd_entry->present = 1;
         pd_entry->read_write = 1;
+        pd_entry->user_supervisor = 1;
     }
 
     struct paging_desc_entry* pt_entries = 
@@ -216,7 +219,7 @@ int paging_map(struct paging_desc* desc, void* virt, void* phys, int flags)
     pt_entry->address = ((uintptr_t) phys) >> 12;
     pt_entry->present = (flags & PAGING_IS_PRESENT) ? 1 : 0;
     pt_entry->read_write = (flags & PAGING_IS_WRITEABLE) ? 1 : 0;
-
+    pt_entry->user_supervisor = (flags & PAGING_ACCESS_FROM_ALL) ? 1 : 0;
     return res;
 }
 

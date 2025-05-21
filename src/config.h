@@ -53,8 +53,8 @@
 #define PEACHOS_MAX_PROGRAM_ALLOCATIONS 1024
 #define PEACHOS_MAX_PROCESSES 12
 
-#define USER_DATA_SEGMENT 0x2B // Also includes requested privilage level 3 
-#define USER_CODE_SEGMENT 0x33 // Also includes RPL3
+#define USER_DATA_SEGMENT 0x33 // Also includes requested privilage level 3 
+#define USER_CODE_SEGMENT 0x2B // Also includes RPL3
 
 #define PEACHOS_MAX_ISR80H_COMMANDS 1024
 
