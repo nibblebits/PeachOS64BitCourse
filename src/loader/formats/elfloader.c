@@ -50,7 +50,7 @@ struct elf_header* elf_header(struct elf_file* file)
 
 struct elf32_shdr* elf_sheader(struct elf_header* header)
 {
-    return (struct elf32_shdr*)((int)header+header->e_shoff);
+    return (struct elf32_shdr*)((uintptr_t)header+header->e_shoff);
 }
 
 struct elf32_phdr* elf_pheader(struct elf_header* header)
@@ -60,7 +60,7 @@ struct elf32_phdr* elf_pheader(struct elf_header* header)
         return 0;
     }
 
-    return (struct elf32_phdr*)((int)header + header->e_phoff);
+    return (struct elf32_phdr*)((uintptr_t)header + header->e_phoff);
 }
 
 struct elf32_phdr* elf_program_header(struct elf_header* header, int index)
@@ -111,13 +111,13 @@ int elf_validate_loaded(struct elf_header* header)
 
 int elf_process_phdr_pt_load(struct elf_file* elf_file, struct elf32_phdr* phdr)
 {
-    if (elf_file->virtual_base_address >= (void*) phdr->p_vaddr || elf_file->virtual_base_address == 0x00)
+    if (elf_file->virtual_base_address >= (void*) (uintptr_t) phdr->p_vaddr || elf_file->virtual_base_address == 0x00)
     {
-        elf_file->virtual_base_address = (void*) phdr->p_vaddr;
+        elf_file->virtual_base_address = (void*) (uintptr_t) phdr->p_vaddr;
         elf_file->physical_base_address = elf_memory(elf_file)+phdr->p_offset;
     }
 
-    unsigned int end_virtual_address = phdr->p_vaddr + phdr->p_filesz;
+    uintptr_t end_virtual_address = phdr->p_vaddr + phdr->p_filesz;
     if (elf_file->virtual_end_address <= (void*)(end_virtual_address) || elf_file->virtual_end_address == 0x00)
     {
         elf_file->virtual_end_address = (void*) end_virtual_address;
