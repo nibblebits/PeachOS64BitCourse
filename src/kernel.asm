@@ -71,6 +71,46 @@ long_mode_entry:
     ; (HIGH 32 BITS ARE NEW | ESP (32 bits) )
     mov rsp, 0x00200000
     mov rbp, rsp
+
+
+    ; Remap the master PIC
+    mov al, 0x11    ; ICW1: Start initialization in cascade mode
+    out 0x20, al    ; Send ICW1 to master command port
+
+    mov al, 0x20    ; ICW2: master PIC vector offset (0x20)
+    out 0x21, al    ; Send ICW2 to master data port
+
+    mov al, 0x04    ; ICW3: Tell master PIC there is a slave pic at IRQ2
+    out 0x21, al    ; Send ICW3 to master data port
+
+    mov al, 0x01    ; ICW3: Set envirionment information (8086/88 mode)
+    out 0x21, al    ; Send ICW4 to master data port
+
+    ; Remap the slave port
+    mov al, 0x11    ; ICW1: Start initilization in cascade mode
+    out 0xA0, al    ; Send ICW1 to slave command port
+
+    mov al, 0x28    ; ICW2: Slave PIC vector offset 0x28
+    out 0xA1, al    ; Send ICW2 to slave data port
+
+    mov al, 0x02    ; ICW3: Tell slave PIC its cascade identity i.e connected to masters IRQ2
+    out 0xA1, al
+
+    mov al, 0x01    ; ICW4: Set envirionment (8086/88 mode)
+    out 0xA1, al    ; Send ICW4 to slave data port
+
+    ; Unmask only the neccessary IRQ's on the master
+    mov al, 0xFB    ; 0xFB = 1111 1011b; All IRQs are masked except IRQ2
+    out 0x21, al    ; Update master PIC's IRQ mask
+
+    ; Mask all IRQ's on the slave PIC
+    mov al, 0xFF    ; 0xFF = 1111 1111b
+    out 0xA1, al    ; Update slave PIC IRQ mask
+
+    mov al, 0x20    ; EOI command
+    out 0x20, al    ; Send to master
+    out 0xA0, al    ; Send to slave
+
     jmp kernel_main
 
 
