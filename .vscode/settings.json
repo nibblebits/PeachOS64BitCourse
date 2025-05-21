@@ -6,6 +6,7 @@
         "kernel.h": "c",
         "stdint.h": "c",
         "type_traits": "c",
-        "memory.h": "c"
+        "memory.h": "c",
+        "paging.h": "c"
     }
 }
