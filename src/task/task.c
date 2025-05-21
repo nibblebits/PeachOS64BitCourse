@@ -39,7 +39,6 @@ struct task *task_new(struct process *process)
         goto out;
     }
 
-
     if (task_head == 0)
     {
         task_head = task;
@@ -133,12 +132,11 @@ struct paging_desc* task_current_paging_desc()
 {
     if (!current_task)
     {
-        panic("NO task yet\n");
+        panic("No task yet!!!");
     }
 
     return task_paging_desc(current_task);
 }
-
 
 
 void task_save_state(struct task *task, struct interrupt_frame *frame)
@@ -146,6 +144,7 @@ void task_save_state(struct task *task, struct interrupt_frame *frame)
     task->registers.ip = frame->ip;
     task->registers.cs = frame->cs;
     task->registers.flags = frame->flags;
+
     task->registers.rsp = frame->rsp;
     task->registers.ss = frame->ss;
     task->registers.rax = frame->rax;
@@ -158,12 +157,15 @@ void task_save_state(struct task *task, struct interrupt_frame *frame)
 }
 int copy_string_from_task(struct task* task, void* virtual, void* phys, int max)
 {
+    // Maximum of page size because we dont want to map several pages into user space at this time
+    // 4096 bytes is enough for most strings, we can revise this later if needed.
     if (max >= PAGING_PAGE_SIZE)
     {
         return -EINVARG;
     }
 
     int res = 0;
+    // Allocate some memory for the copy
     char* tmp = kzalloc(max);
     if (!tmp)
     {
@@ -171,34 +173,61 @@ int copy_string_from_task(struct task* task, void* virtual, void* phys, int max)
         goto out;
     }
 
+
+    // As our new kernel allows virtual addresses to point to different physical addresses
+    // aprticuarlly in cases where theirs fragmentation
+    // we must first extract the real physcial address, we cant map virtual address to virtual address
+    // after all.
+
     void* phys_tmp = paging_get_physical_address(kernel_desc(), tmp);
+
+    // We need to copy the string from the task, in order to do that we must be on the
+    // page table of the user task, but then we wont have access to the "tmp" variable we created
+    // as the memory wont be accessible from user space
+    // to solve this we must map "tmp" into the user pages now, and then we will switch and copy
+    // the virtual memory into "tmp" then switfch back to the kernel tables,
+    // this shared memory can the nbe copied into "phys"
+    // after doing this we can unmap the mmeory from the user space and free the "tmp" variable.
+
     struct paging_desc* task_desc = task_paging_desc(task);
+    // lets get the previous paging map entry so we can restore it when we are done incase
+    // the user process is already using that memory
     struct paging_desc_entry old_entry;
     memcpy(&old_entry, paging_get(task_desc, phys_tmp), sizeof(struct paging_desc_entry));
 
     int old_entry_flags = 0;
     old_entry_flags |= old_entry.read_write | old_entry.present | old_entry.user_supervisor;
 
-    paging_map(task_desc, phys_tmp, phys_tmp, PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
-    
-    // Switch to the user pages
+    paging_map(task_desc, phys_tmp, phys_tmp, PAGING_IS_PRESENT | PAGING_IS_WRITEABLE | PAGING_ACCESS_FROM_ALL);
+
+    // Now the map is complete we can switch to the user page
+    // which will have access to the memory
     task_page_task(task);
-    // we are now on the page tables of the task
+
+    // We must copy into "tmp" the shared memory
     strncpy(tmp, virtual, max);
 
-    // switch back to kernel page tables
+    // Now switch back to the kernel page once the copy is done
     kernel_page();
 
+    // "tmp" contains the copied virtual memory from the user process which we now have acces too.
+
+    // Copy the completed result back into "phys" which is the output
     strncpy(phys, tmp, max);
 
-    // Remap back to what is was before.
-    paging_map(task_desc, phys_tmp, (void*)((uint64_t)(old_entry.address << 12)), old_entry_flags);
+    // lets restore the old entry for the user page tables, theres a chance it was
+    // using the address we used for "tmp"
+    paging_map(task_desc, phys_tmp, (void*)((uint64_t)(old_entry.address << 12)), old_entry_flags); 
+
+    // All looks correct now..
+
 out:
-    // No longer do we need the temp variable
+    // No longer need the temp variable
     if (tmp)
     {
         kfree(tmp);
     }
+
     return res;
 }
 void task_current_save_state(struct interrupt_frame *frame)
@@ -240,25 +269,26 @@ void task_run_first_ever_task()
 int task_init(struct task *task, struct process *process)
 {
     memset(task, 0, sizeof(struct task));
-    // Map the entire 4GB address space to its self
     task->paging_desc = paging_desc_new(PAGING_MAP_LEVEL_4);
     if (!task->paging_desc)
     {
         return -EIO;
     }
-
-    paging_map_e820_memory_regions(task->paging_desc);
+    
+    // map whole kernel
+    paging_map_to(task->paging_desc, 0x00, 0x00, (void*)(1024*1024*40), PAGING_ACCESS_FROM_ALL | PAGING_IS_PRESENT | PAGING_IS_WRITEABLE);
 
     task->registers.ip = PEACHOS_PROGRAM_VIRTUAL_ADDRESS;
     if (process->filetype == PROCESS_FILETYPE_ELF)
     {
-        panic("Elf files not supported\n");
+        panic("ELF FILES ARE DISABLED FOR NOW");
         //task->registers.ip = elf_header(process->elf_file)->e_entry;
     }
 
     task->registers.ss = USER_DATA_SEGMENT;
     task->registers.cs = USER_CODE_SEGMENT;
     task->registers.rsp = PEACHOS_PROGRAM_VIRTUAL_STACK_ADDRESS_START;
+
     task->process = process;
 
     return 0;

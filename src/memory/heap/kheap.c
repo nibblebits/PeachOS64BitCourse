@@ -1,26 +1,31 @@
 #include "kheap.h"
 #include "heap.h"
+#include "multiheap.h"
 #include "config.h"
 #include "kernel.h"
 #include "memory/memory.h"
+// paaging
 #include "memory/paging/paging.h"
-#include "multiheap.h"
 
-struct heap kernel_minimal_heap;
+// Minimal memory allocator for the kernel
+// Just enough memory for us to setup a more advanced heap
+struct heap kernel_minmal_heap;
 struct heap_table kernel_minimal_heap_table;
 
-struct multiheap* kernel_multiheap = NULL;
+struct multiheap *kernel_multiheap = NULL;
 
-struct e820_entry* kheap_get_allowable_memory_region_for_minimal_heap()
+// get the first available memory region for a minmal heap
+struct e820_entry *kheap_get_allowable_memory_region_for_minimal_heap()
 {
-    struct e820_entry* entry = 0;
+    struct e820_entry *entry = 0;
     size_t total_entries = e820_total_entries();
-    for(size_t i = 0; i < total_entries; i++)
+    for (size_t i = 0; i < total_entries; i++)
     {
-        struct e820_entry* current = e820_entry(i);
-        if (current->type == 1 && current->length > PEACHOS_HEAP_MINIMUM_SIZE_BYTES)
+        struct e820_entry *current = e820_entry(i);
+        // Must be available and a minimum of 100 MB of memory
+        if (current->type == 1 && current->length >= PEACHOS_HEAP_MINIMUM_SIZE_BYTES)
         {
-            entry  = current;
+            entry = current;
             break;
         }
     }
@@ -28,86 +33,100 @@ struct e820_entry* kheap_get_allowable_memory_region_for_minimal_heap()
     return entry;
 }
 
-/**
- * CALL ONCE PAGING IS SETUP
- */
-void kheap_post_paging()
-{
-    multiheap_ready(kernel_multiheap);
-}
-
 void kheap_init()
 {
-    struct e820_entry* entry = kheap_get_allowable_memory_region_for_minimal_heap();
+
+    /**
+     * We need to first setup a minimal heap that uses static addresses
+     * as we do not have any heap yet to allocate memory. Once we have our minimal heap we can setup a multiheap
+     * which will allow us to create multiple heaps within the kernel using dynamicc memory.
+     */
+    // lets get the first available memory region
+    struct e820_entry *entry = kheap_get_allowable_memory_region_for_minimal_heap();
     if (!entry)
     {
-        panic("Installed RAM does not meet the requirements for multiheap\n");
+        panic("Theres no available memory region thats a minimum of 100 MB to be used for the minimal heap\n");
     }
 
-    void* address = (void*) entry->base_addr;
-    void* end_address = (void*) (entry->base_addr + entry->length);
-    void* heap_table_address = address;
-    if (heap_table_address < (void*) PEACHOS_MINIMAL_HEAP_TABLE_ADDRESS)
+    // Get the address
+    void *address = (void *)entry->base_addr;
+    void *end_address = (void *)(entry->base_addr + entry->length);
+    void *heap_table_address = address;
+    // if the address is below our kernel minimal heap table address then we need to make it our heap table address address
+    if (heap_table_address < (void *)PEACHOS_MINIMAL_HEAP_TABLE_ADDRESS)
     {
-        heap_table_address = (void*) PEACHOS_MINIMAL_HEAP_TABLE_ADDRESS;
+        // Static address, but it will be fine as we know we have 100 MB of memory
+        heap_table_address = (void *)PEACHOS_MINIMAL_HEAP_TABLE_ADDRESS;
     }
 
     size_t total_heap_size = end_address - heap_table_address;
     size_t total_heap_blocks = total_heap_size / PEACHOS_HEAP_BLOCK_SIZE;
     size_t total_heap_entry_table_size = sizeof(HEAP_BLOCK_TABLE_ENTRY) * total_heap_blocks;
 
-    // Now lets calculate the true size of the data heap
-    size_t heap_data_size = total_heap_size - total_heap_entry_table_size;
+    // Minimal heap is directly after the heap table
+    void *heap_address = heap_table_address + total_heap_entry_table_size;
 
-    // Now we have the adjusted heap data size we now need to readjust the table size to accomodate
-    // for the lost bytes
-    size_t total_heap_data_blocks = heap_data_size / PEACHOS_HEAP_BLOCK_SIZE;
-    // Make the heap table entry size more accurate
-    total_heap_entry_table_size = sizeof(HEAP_BLOCK_TABLE_ENTRY) * total_heap_data_blocks;
+    // End address where the heap ends, also the address where new heap blocks can be created
+    void *heap_end_address = end_address;
 
-    void* heap_address = heap_table_address + total_heap_entry_table_size;
-    void* heap_end_address = end_address;
-    
-    // Check if the heap address is aligned
+    // if the heap address isnt aligned to the block size then we need to align it
     if (!paging_is_aligned(heap_address))
     {
-        // Not aligned align it
         heap_address = paging_align_address(heap_address);
     }
 
-    // Check if the heap end address is aligned
+    // if the heap end address isnt aligned to the block size then we need to align it
     if (!paging_is_aligned(heap_end_address))
     {
+        // will align to the lower page as we don twant to grant more memory tha nthere is
         heap_end_address = paging_align_to_lower_page(heap_end_address);
     }
 
+    // How much data do we have to allocate for our minimal heap
     size_t size = heap_end_address - heap_address;
+
     size_t total_table_entries = size / PEACHOS_HEAP_BLOCK_SIZE;
-    kernel_minimal_heap_table.entries = (HEAP_BLOCK_TABLE_ENTRY*)(heap_table_address);
+    kernel_minimal_heap_table.entries = (HEAP_BLOCK_TABLE_ENTRY *)(heap_table_address);
     kernel_minimal_heap_table.total = total_table_entries;
 
-    int res = heap_create(&kernel_minimal_heap, heap_address, heap_end_address, &kernel_minimal_heap_table);
+    int res = heap_create(&kernel_minmal_heap, heap_address, heap_end_address, &kernel_minimal_heap_table);
     if (res < 0)
     {
-        panic("Failed to initialize minimal heap\n");
+        panic("Failed to create heap\n");
     }
 
-    kernel_multiheap = multiheap_new(&kernel_minimal_heap);
-    multiheap_add_existing_heap(kernel_multiheap, &kernel_minimal_heap, MULTIHEAP_HEAP_FLAG_EXTERNALLY_OWNED);
+    // We got our heap lets now create a multiheap, our multiheap will use the memory of the minimal heap
+    kernel_multiheap = multiheap_new(&kernel_minmal_heap);
+    // We don't want to waste space so why not allow our minimal heap to also be used as a heap
+    multiheap_add_existing_heap(kernel_multiheap, &kernel_minmal_heap, MULTIHEAP_HEAP_FLAG_DEFRAGMENT_WITH_PAGING);
 
-    struct e820_entry* used_entry = entry;
+    // We want to keep track of the entry we just used so we dont add it again.
+    struct e820_entry *used_entry = entry;
 
+    // Lets now add all other available memory regions to our multiheap
     size_t total_entries = e820_total_entries();
-    for(size_t i = 0; i < total_entries; i++)
+    for (size_t i = 0; i < total_entries; i++)
     {
-        struct e820_entry* current = e820_entry(i);
+        struct e820_entry *current = e820_entry(i);
         if (current != used_entry && current->type == 1)
         {
-            void* base_addr = (void*) current->base_addr;
-            void* end_addr = (void*) (current->base_addr + current->length);
+            void *base_addr = (void *)current->base_addr;
+            void *end_addr = (void *)(current->base_addr + current->length);
 
-            // Enforce page alignment
-            if(!paging_is_aligned(base_addr))
+            if (base_addr < (void *)PEACHOS_MINIMAL_HEAP_TABLE_ADDRESS)
+            {
+                // Static address, but it will be fine as we know we have 100 MB of memory
+                base_addr = (void *)PEACHOS_MINIMAL_HEAP_TABLE_ADDRESS;
+            }
+
+            if (end_addr <= base_addr)
+            {
+                // We cant use this one as the changes we made to the base address made it so that the end address is less than the base address
+                continue;
+            }
+
+            // lets enforce alignment
+            if (!paging_is_aligned(base_addr))
             {
                 base_addr = paging_align_address(base_addr);
             }
@@ -117,30 +136,30 @@ void kheap_init()
                 end_addr = paging_align_to_lower_page(end_addr);
             }
 
-            if (base_addr < (void*) PEACHOS_MINIMAL_HEAP_ADDRESS)
-            {
-                base_addr = (void*) PEACHOS_MINIMAL_HEAP_ADDRESS;
-            }
-
-            if (end_addr <= base_addr)
-            {
-                continue;
-            }
-
-            // Add the memory region to the multiheap
-            multiheap_add(kernel_multiheap, (void*) base_addr, (void*) end_addr, MULTIHEAP_HEAP_FLAG_DEFRAGMENT_WITH_PAGING);
+            // lets add it to our multiheap
+            multiheap_add(kernel_multiheap, base_addr, end_addr, MULTIHEAP_HEAP_FLAG_DEFRAGMENT_WITH_PAGING);
         }
     }
 }
 
-void* kmalloc(size_t size)
+/**
+ * CALL ONCE PAGING IS SETUP!!!!
+ */
+void kheap_post_paging()
 {
-    void* ptr = multiheap_alloc(kernel_multiheap, size);
+    // We are ready only when paging is ready.
+    multiheap_ready(kernel_multiheap); // TODO THINK OF A BETTER NAME for this function...
+}
+
+void *kmalloc(size_t size)
+{
+    void *ptr = multiheap_alloc(kernel_multiheap, size);
     return ptr;
 }
-void* kzalloc(size_t size)
+
+void *kzalloc(size_t size)
 {
-    void* ptr = kmalloc(size);
+    void *ptr = kmalloc(size);
     if (!ptr)
         return 0;
 
@@ -148,19 +167,19 @@ void* kzalloc(size_t size)
     return ptr;
 }
 
-void* kpalloc(size_t size)
+/**
+ * Memory allocation that if fails will result in using paging to solve the fragmentation problem.
+ * If still fails returns NULL.
+ */
+void *kpalloc(size_t size)
 {
-    void* ptr = multiheap_palloc(kernel_multiheap, size);
-    if (!ptr)
-    {
-        panic("Failed to allocate memory\n");
-    }
+    void *ptr = multiheap_palloc(kernel_multiheap, size);
     return ptr;
 }
 
-void* kpzalloc(size_t size)
+void *kpzalloc(size_t size)
 {
-    void* ptr = kpalloc(size);
+    void *ptr = kpalloc(size);
     if (!ptr)
         return 0;
 
@@ -168,9 +187,7 @@ void* kpzalloc(size_t size)
     return ptr;
 }
 
-
-
-void kfree(void* ptr)
+void kfree(void *ptr)
 {
-    //heap_free(&kernel_heap, ptr);
+    multiheap_free(kernel_multiheap, ptr);
 }

@@ -4,8 +4,6 @@ section .asm
 global tss_load
 
 tss_load:
-    xor rax, rax
-    mov ax, di
+    mov ax, di ; TSS Segment
     ltr ax
     ret
-    

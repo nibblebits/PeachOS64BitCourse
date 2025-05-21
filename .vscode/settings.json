@@ -5,6 +5,7 @@
         "fstream": "c",
         "kernel.h": "c",
         "stdint.h": "c",
-        "type_traits": "c"
+        "type_traits": "c",
+        "memory.h": "c"
     }
 }

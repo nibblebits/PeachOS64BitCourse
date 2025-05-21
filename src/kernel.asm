@@ -71,6 +71,37 @@ long_mode_entry:
     ; (HIGH 32 BITS ARE NEW | ESP (32 bits) )
     mov rsp, 0x00200000
     mov rbp, rsp
+
+
+
+; Remap the master PIC
+    mov al, 00010001b      ; ICW1: start initialization in cascade mode
+    out 0x20, al           ; send ICW1 to master command port
+
+    mov al, 0x20           ; ICW2: master PIC vector offset (0x20)
+    out 0x21, al           ; send ICW2 to master data port
+
+    mov al, 0x04           ; ICW3: tell Master PIC that there is a slave PIC at IRQ2 (binary 0000 0100)
+    out 0x21, al           ; send ICW3 to master data port
+
+    mov al, 00000001b      ; ICW4: set environment info (8086/88 mode)
+    out 0x21, al           ; send ICW4 to master data port
+
+    ; Remap the slave PIC
+    mov al, 00010001b      ; ICW1: start initialization in cascade mode
+    out 0xA0, al           ; send ICW1 to slave command port
+
+    mov al, 0x28           ; ICW2: slave PIC vector offset (0x28)
+    out 0xA1, al           ; send ICW2 to slave data port
+
+    mov al, 0x02           ; ICW3: tell Slave PIC its cascade identity (connected to master's IRQ2)
+    out 0xA1, al           ; send ICW3 to slave data port
+
+    mov al, 00000001b      ; ICW4: set environment info (8086/88 mode)
+    out 0xA1, al           ; send ICW4 to slave data port
+
+    ; End remap of the master PIC
+
     jmp kernel_main
 
 
@@ -82,106 +113,107 @@ div_test:
     idiv rax 
     ret 
 
-; Global descriptor table (GDT)
-align 8 
-gdt: 
-    ; Null descriptor (required)
-    dq 0x0000000000000000 
+align 8
+gdt:
+    ; Null Descriptor (Required)
+    dq 0x0000000000000000
 
-    ; 32-Bit code segment descriptor
-    dw 0xffff ; Segment limit 0-15 bits
-    dw 0    ; Base first 0-15 bits
-    db 0    ; Base 16-23 bits
-    db 0x9a ; Access byte
-    db 11001111b ; HIgh 4 bit flags and the low 4 bit flags
-    db 0         ; Base 24-31 bits
-
-
-    ; 32 bit Data segment descriptor
-    dw 0xffff   ; Segment limit first 0-15 bits
-    dw 0        ; Base first 0-15 bits
-    db 0        ; Base 16-23 bits
-    db 0x92     ; Access byte
-    db 11001111b ; High  bit flags and low 4 bit flags
+    ; 32-bit Code Segment Descriptor
+    dw 0xffff ; Segment limit first 0-15 bits
+    dw 0      ; Base first 0-15 bits
+    db 0      ; Base 16-23 bits
+    db 0x9a   ; Access byte
+    db 11001111b ; High 4 bit flags and the low 4 bit flags
     db 0        ; Base 24-31 bits
 
-    ; 64 bit code segment descriptor
-    dw 0x0000               ; Segment limit low (ignored in long mode)
-    dw 0x0000               ; Base address low
-    db 0x00                 ; Base address middle
-    db 0x9A                 ; Access byte: Code segment, executable and eradable
-    db 0x20                 ; Flag: Long MOde Segment
-    db 0x00                 ; Base address high
 
-    ; 64 bit data segment descriptor
-    dw 0x0000           ; Segment limit low
-    dw 0x0000           ; Base address low
-    db 0x00             ; Base address middle
-    db 0x92             ; Access byte data segment, read/write, present
-    db 0x00             ; Long mode data segment has flag to zero
-    db 0x00             ; Base address high
+    ; 32-bit Data Segment Descriptor
+    dw 0xffff ; Segment limit first 0-15 bits
+    dw 0      ; Base first 0-15 bits
+    db 0      ; Base 16-23 bits
+    db 0x92   ; Access byte
+    db 11001111b ; High 4 bit flags and the low 4 bit flags
+    db 0        ; Base 24-31 bits
+
+    ; 64-bit Code Segment Descriptor
+    dw 0x0000                  ; Segment Limit Low (ignored in long mode)
+    dw 0x0000                  ; Base Address Low
+    db 0x00                    ; Base Address Middle
+    db 0x9A                    ; Access Byte: Code Segment, Executable, Readable
+    db 0x20                    ; Flags: Long Mode Segment
+    db 0x00                    ; Base Address High
+
+    ; 64-bit Data Segment Descriptor
+    dw 0x0000                  ; Segment Limit Low
+    dw 0x0000                  ; Base Address Low
+    db 0x00                    ; Base Address Middle
+    db 0x92                    ; Access Byte: Data Segment, Read/Write, Present
+    db 0xC0                    ; Flags: Long mode data segments have flags set to 0
+    db 0x00                    ; Base Address High
+
+    ; 64-bit User Code Segment Descriptor
+    dw 0x0000                  ; Segment Limit Low (ignored in long mode)
+    dw 0x0000                  ; Base Address Low
+    db 0x00                    ; Base Address Middle
+    db 0xFA                    ; Access Byte: Code Segment, Executable, Readable, User Mode
+    db 0x20                    ; Flags: Long Mode Segment
+    db 0x00                    ; Base Address High
+
+    ; 64-bit User Data Segment Descriptor
+    dw 0x0000                  ; Segment Limit Low
+    dw 0x0000                  ; Base Address Low
+    db 0x00                    ; Base Address Middle
+    db 0xF2                    ; Access Byte: Data Segment, Read/Write, User Mode
+    db 0x00                    ; Flags: Long mode data segments have flags set to 0
+    db 0x00                    ; Base Address High
 
 
-    ; 64-bit user code segment descriptor
-    dw 0x0000           ; Segment limit low
-    dw 0x0000           ; Base address low
-    db 0x00             ; Base address middle
-    db 0xFA             ; Access byte data segment, read/write, present, user mode
-    db 0x20             ; Long mode data segment has flag to zero
-    db 0x00             ; Base address high         ; 
-
-    ; 64-bit user data segment
-    dw 0x0000           ; Segment limit low
-    dw 0x0000           ; Base address low
-    db 0x00             ; Base address middle
-    db 0xF2             ; Access byte data segment, read/write, present, user mode
-    db 0x00             ; Long mode data segment has flag to zero
-    db 0x00             ; Base address high
+   ; TSS IS IN TWO ENTRIES FOR 64 BIT MODE
+   ; 64-bit TSS  Segment Descriptor
+   ; NULL as it will be initialized in the C code.
+    dw 0x0000                  ; Segment Limit Low
+    dw 0x0000                  ; Base Address Low
+    db 0x00                    ; Base Address Middle
+    db 0x00                    ; Access Byte: Data Segment, Read/Write, User Mode
+    db 0x00                    ; Flags: Long mode data segments have flags set to 0
+    db 0x00                    ; Base Address High
 
 
-    ; TSS IS IN TWO ENTRIES FOR 64 BIT MODE
-    ; 64-bit TSS Segment descriptor
-    ; NULL because it wil be initialized in the C code 
-    dw 0x0000           ; Segment limit low
-    dw 0x0000           ; Base address low
-    db 0x00             ; Base address middle
-    db 0x00             ; Access byte data segment, read/write, present, user mode
-    db 0x00             ; Long mode data segment has flag to zero
-    db 0x00             ; Base address high
-
-    ; 64-bit TSS Segment descriptor 2
-    ; NULL because it wil be initialized in the C code 
-    dw 0x0000           ; Segment limit low
-    dw 0x0000           ; Base address low
-    db 0x00             ; Base address middle
-    db 0x00             ; Access byte data segment, read/write, present, user mode
-    db 0x00             ; Long mode data segment has flag to zero
-    db 0x00             ; Base address high
-
+   ; 64-bit TSS  Segment Descriptor 2
+   ; NULL as it will be initialized in the C code.
+    dw 0x0000                  ; Segment Limit Low
+    dw 0x0000                  ; Base Address Low
+    db 0x00                    ; Base Address Middle
+    db 0x00                    ; Access Byte: Data Segment, Read/Write, User Mode
+    db 0x00                    ; Flags: Long mode data segments have flags set to 0
+    db 0x00                    ; Base Address High
 
 
 gdt_end:
 
 gdt_descriptor:
-    dw gdt_end - gdt -1 ; Size of GDT minus 1
-    dd gdt              ; Base address of GDT
+    dw gdt_end - gdt - 1    ; 2 bytes: Limit
+    dq gdt                  ; 8 bytes: 64-bit Base address
 
-
-; Page table definitions
 align 4096
 PML4_Table:
-    dq PDPT_TABLE + 0x03    ; PML4 Entry pointing to PDPT (Present, RW)
-    times 511 dq 0          ; Null the remaining entries
+    dq PDPT_Table + 0x03       ; PML4 entry pointing to PDPT (Present, RW)
+    times 511 dq 0             ; Remaining entries set to zero
 
 align 4096
-PDPT_TABLE:
-    dq PD_Table + 0x03      ; PDPT entry pointing to PD(Present, RW)
-    times 511 dq 0          ; Remaining entries to be set to zero
+PDPT_Table:
+    dq PD_Table + 0x03         ; PDPT entry pointing to PD (Present, RW)
+    times 511 dq 0             ; Remaining entries set to zero
 
 align 4096
-PD_Table: 
-    %assign addr 0x0000000
-    %rep 512 
-    dq addr + 0x83   ; 2-MB Pages Present, RW
-    %assign addr addr + 0x200000
-    %endrep 
+; Map up to 1 GB of memory. Doesn't matter if theres not enough ram for that
+; the mapping is temporary until we can reinitialize the page tables on the C code side.
+PD_Table:
+    %assign addr 0x00000000    ; Start address
+    %rep 512                   ; Number of entries in a Page Directory
+        dq addr + 0x83         ; PD entry mapping 2 MiB page (Present, RW, PS)
+        %assign addr addr + 0x200000 ; Increment by 2 MiB
+    %endrep
+
+
+

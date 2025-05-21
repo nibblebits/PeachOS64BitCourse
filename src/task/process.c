@@ -150,13 +150,14 @@ int process_free_binary_data(struct process* process)
 
 int process_free_elf_data(struct process* process)
 {
-    return -1;
+    // ELF FILES ARE DISABLED FOR NOW!!!
+    
     // if (process->elf_file)
     // {
     //     elf_close(process->elf_file);
     // }
 
-    // return 0;
+    return 0;
 }
 int process_free_program_data(struct process* process)
 {
@@ -311,8 +312,15 @@ void process_free(struct process* process, void* ptr)
     {
         // Oops its not our pointer.
         return;
-    }
+    }   
 
+    // NOTE TO SELF: OPTIMIZE THIS IN THE NEW VIDEO COURSE
+    // WE DO NOT WANT THE TASK PAGES TO BE ACCESSED LIKE THIS
+    // SOME ABSTRACTION IS NECCESSARY, OPTIMIZE SO THE CODE/DATA IS MAPPED IN THE PROCESS
+    // BUT ACCESSIBLE BY THE TASK
+
+
+    // Here we unmap the shared process data from the user task pages
     int res = paging_map_to(process->task->paging_desc, allocation->ptr, allocation->ptr, paging_align_address(allocation->ptr+allocation->size), 0x00);
     if (res < 0)
     {
@@ -375,20 +383,27 @@ out:
 
 static int process_load_elf(const char* filename, struct process* process)
 {
-    // Temporary disabled.
-    return -EINFORMAT;
-//     int res = 0;
-//     struct elf_file* elf_file = 0;
-//     res = elf_load(filename, &elf_file);
-//     if (ISERR(res))
-//     {
-//         goto out;
-//     }
+    int res = 0;
 
-//     process->filetype = PROCESS_FILETYPE_ELF;
-//     process->elf_file = elf_file;
-// out:
-//     return res;
+    // LOADING OF ELF FILES IS DISABLED FOR NOW AS WE ONLY SUPPORT ELF32
+    // THE TRANSISTION TO 64 BIT REQUIRES THAT WE USE ELF64 FILES
+    // WE WONT DROP BACK INTO A COMPATABILITY OF SOME KIND
+    // WE REQUIRE ELF64 FOR NOW!   
+    // MAY CHANGE THIS FOR THE CORUSE TO SUPPORT ELF32 AND ELF64 WE WILL SEE I WILL DECIDE LATER.. 
+    res = -EINFORMAT;
+    goto out;
+
+    // struct elf_file* elf_file = 0;
+    // res = elf_load(filename, &elf_file);
+    // if (ISERR(res))
+    // {
+    //     goto out;
+    // }
+
+    // process->filetype = PROCESS_FILETYPE_ELF;
+    // process->elf_file = elf_file;
+out:
+    return res;
 }
 static int process_load_data(const char* filename, struct process* process)
 {
@@ -411,8 +426,10 @@ int process_map_binary(struct process* process)
 
 static int process_map_elf(struct process* process)
 {
-    //int res = 0;
-    return -EINVARG;
+    int res = -1;
+
+    // WE DONT SUPPORT ELF64 YET!!!!
+
 
     // struct elf_file* elf_file = process->elf_file;
     // struct elf_header* header = elf_header(elf_file);
@@ -432,7 +449,7 @@ static int process_map_elf(struct process* process)
     //         break;
     //     }
     // }
-    // return res;
+    return res;
 }
 int process_map_memory(struct process* process)
 {
