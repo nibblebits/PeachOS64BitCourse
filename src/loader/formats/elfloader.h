@@ -52,11 +52,11 @@ void* elf_phys_base(struct elf_file* file);
 void* elf_phys_end(struct elf_file* file);
 
 struct elf_header* elf_header(struct elf_file* file);
-struct elf32_shdr* elf_sheader(struct elf_header* header);
+struct elf64_shdr* elf_sheader(struct elf_header* header);
 void* elf_memory(struct elf_file* file);
-struct elf32_phdr* elf_pheader(struct elf_header* header);
-struct elf32_phdr* elf_program_header(struct elf_header* header, int index);
-struct elf32_shdr* elf_section(struct elf_header* header, int index);
-void* elf_phdr_phys_address(struct elf_file* file, struct elf32_phdr* phdr);
+struct elf64_phdr* elf_pheader(struct elf_header* header);
+struct elf64_phdr* elf_program_header(struct elf_header* header, int index);
+struct elf64_shdr* elf_section(struct elf_header* header, int index);
+void* elf_phdr_phys_address(struct elf_file* file, struct elf64_phdr* phdr);
 
 #endif
