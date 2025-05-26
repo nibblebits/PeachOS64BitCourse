@@ -16,7 +16,7 @@ struct idt_desc
                        // to load from the TSS(Stack state segment)
     uint8_t type_attr; // descriptor type and attributes
     uint16_t offset_2; // Offset bits 16-31
-    uint16_t offset_3; // Offset bits 32-63
+    uint32_t offset_3; // Offset bits 32-63
     uint32_t reserved; // Reserved NULL.
 } __attribute__((packed));
 
