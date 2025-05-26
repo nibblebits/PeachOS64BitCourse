@@ -1,0 +1,31 @@
+#ifndef KERNEL_IRQ
+#define KERNEL_IRQ
+enum
+{
+    IRQ_TIMER,
+    IRQ_KEYBOARD,
+    IRQ_CASCADE,
+    IRQ_COM2,
+    IRQ_COM1,
+    IRQ_LPT2,
+    IRQ_FLOPPY_DISK,
+    IRQ_LPT1,
+    IRQ_CMOS,
+    IRQ_LEGACY_SCSI,
+    IRQ_SCSI,
+    IRQ_PS2_MOUSE,
+    IRQ_FPU_COPROCESSOR,
+    IRQ_PRIMARY_ATA_HDD,
+    IRQ_SECONDARY_ATA_HDD
+};
+
+#define PIC_MASTER_ENDING_IRQ 7
+#define PIC_SLAVE_STARTING_IRQ 8
+#define PIC_SLAVE_ENDING_IRQ 15
+#define IRQ_MASTER_PORT 0x21
+#define IRQ_SLAVE_PORT 0xA1
+
+typedef int IRQ;
+void IRQ_disable(IRQ irq);
+void IRQ_enable(IRQ irq);
+#endif
