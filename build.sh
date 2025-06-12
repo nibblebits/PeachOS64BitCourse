@@ -36,7 +36,9 @@ sudo mkfs.vfat -n PEACH "${LOOPDEV}p2"
 sudo mount -t vfat "${LOOPDEV}p2" /mnt/d
 
 # Build the 64 bit peachos kernel
-
+cd ./PeachOS64Bit
+make clean
+./build.sh
 # end build
 
 # GO back to the peachos directory

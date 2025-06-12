@@ -43,12 +43,23 @@
 
 [LibraryClasses]
   UefiApplicationEntryPoint
+  UefiBootServicesTableLib
   UefiLib
   PcdLib
 
 [FeaturePcd]
   gEfiMdeModulePkgTokenSpaceGuid.PcdHelloWorldPrintEnable   ## CONSUMES
 
+[Protocols]
+  gEfiLoadedImageProtocolGuid
+  gEfiAcpiSdtProtocolGuid
+  gEfiPciRootBridgeIoProtocolGuid
+
+[Guids]
+  gEfiFileInfoGuid
+  gEfiAcpi10TableGuid
+  gEfiAcpi20TableGuid
+  
 [Pcd]
   gEfiMdeModulePkgTokenSpaceGuid.PcdHelloWorldPrintString   ## SOMETIMES_CONSUMES
   gEfiMdeModulePkgTokenSpaceGuid.PcdHelloWorldPrintTimes    ## SOMETIMES_CONSUMES
