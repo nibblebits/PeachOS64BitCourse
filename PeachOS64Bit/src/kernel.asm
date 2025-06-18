@@ -1,4 +1,4 @@
-[BITS 32]
+[BITS 64]
 
 global _start
 global kernel_registers
@@ -13,44 +13,9 @@ LONG_MODE_CODE_SEG equ 0x18
 LONG_MODE_DATA_SEG equ 0x20 ; Selector for the 64 bit data segment (offset in gdt)
 
 _start:
-    mov ax, DATA_SEG
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-    mov ss, ax
+    cli 
+    jmp long_mode_entry
 
-    ; Setup the stack
-    mov ebp, 0x00200000
-    mov esp, ebp
-
-    ; Load the global descriptor table (GDT)
-    lgdt [gdt_descriptor]
-
-    ; Enable PAE(Physical Address Extension) in CR4
-    mov eax, cr4
-    or eax, 1 << 5
-    mov cr4, eax
-
-    ; Setup the page tables
-    mov eax, PML4_Table
-    mov cr3, eax
-
-    ; IA32_EFER 
-    mov ecx, 0xC0000080 ; IA32_EFER Index
-    rdmsr               ; Reads IA32_EFER_MSR Into EDX:EAX
-    or eax, 0x100       ; (Long Mode Enable) bit (bit 8)
-    wrmsr               ; Write back to IA32_EFER MSR
-
-    ; Enable paging in CR0
-    mov eax, cr0
-    or eax, 1 << 31     ; Set PG bit (bit 31)
-    mov cr0, eax
-
-    ; JMP TO 64 BIT MODE
-    jmp LONG_MODE_CODE_SEG:long_mode_entry
-
-[BITS 64]
 kernel_registers:
     mov ax, LONG_MODE_DATA_SEG
     mov ds, ax
@@ -60,6 +25,13 @@ kernel_registers:
     ret
 
 long_mode_entry:
+    ; Set up page tables
+    mov rax, PML4_Table
+    mov cr3, rax      ; Change the page tables
+
+    ; Load the global descriptor table
+    lgdt [gdt_descriptor]
+
     mov ax, LONG_MODE_DATA_SEG
     mov ds, ax
     mov es, ax
@@ -72,7 +44,14 @@ long_mode_entry:
     mov rsp, 0x00200000
     mov rbp, rsp
 
+    ; Purpose is to switch the code selector
+    ; Code will jump to long_mode_new_gdt_complete
+    push QWORD 0x18     ; Segment selector
+    push QWORD long_mode_new_gdt_complete
+    retfq
 
+long_mode_new_gdt_complete: 
+    
     ; Remap the master PIC
     mov al, 0x11    ; ICW1: Start initialization in cascade mode
     out 0x20, al    ; Send ICW1 to master command port
@@ -204,7 +183,7 @@ gdt_end:
 
 gdt_descriptor:
     dw gdt_end - gdt -1 ; Size of GDT minus 1
-    dd gdt              ; Base address of GDT
+    dq gdt              ; Base address of GDT
 
 
 ; Page table definitions
