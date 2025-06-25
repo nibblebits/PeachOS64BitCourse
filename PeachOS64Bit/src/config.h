@@ -15,13 +15,13 @@
 #define TSS_DESCRIPTOR_TYPE 0x89  // 0x9 = 64-bit, bit 7 present
 #define PEACHOS_TOTAL_INTERRUPTS 512
 
-// Where to find the E820 records
-#define PEACHOS_MEMORY_MAP_LOCATION 0x7e00
 
 // 16 Bit number defining the total number of loaded
 // entries. 
-#define PEACHOS_MEMORY_MAP_TOTAL_ENTRIES_LOCATION 0x7DFE
+#define PEACHOS_MEMORY_MAP_TOTAL_ENTRIES_LOCATION 0x210000
 
+// Where to find the E820 records
+#define PEACHOS_MEMORY_MAP_LOCATION 0x210008
 
 // 100MB heap size
 #define PEACHOS_HEAP_MINIMUM_SIZE_BYTES 104857600
