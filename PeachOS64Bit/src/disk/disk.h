@@ -9,6 +9,11 @@ typedef unsigned int PEACHOS_DISK_TYPE;
 // Represents a real physical hard disk
 #define PEACHOS_DISK_TYPE_REAL 0
 
+// Specifies this disk represents a partion/virtual-disk
+#define PEACHOS_DISK_TYPE_PARTITION 1 
+
+#define PEACHOS_KERNEL_FILESYSTEM_NAME "PEACH      "
+
 struct disk
 {
     PEACHOS_DISK_TYPE type;
@@ -18,6 +23,11 @@ struct disk
     int id;
 
     struct filesystem* filesystem;
+
+    // Set both to zero for the primary disk
+    // all bounds checking is ignored if set to zero.
+    size_t starting_lba;
+    size_t ending_lba;
 
     // The private data of our filesystem
     void* fs_private;
