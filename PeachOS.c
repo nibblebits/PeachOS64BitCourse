@@ -270,7 +270,9 @@ UefiMain (
   EFI_STATUS Status = 0;
 
   Print(L"Peach OS UEFI bootloader.");
-
+  // Setup and load E820 Entries
+  SetupMemoryMaps();
+  
   VOID* KernelBuffer = NULL;
   UINTN KernelBufferSize = 0;
   Status = ReadFileFromCurrentFilesystem(L"kernel.bin", &KernelBuffer, &KernelBufferSize);
@@ -294,8 +296,6 @@ UefiMain (
   CopyMem((VOID*)KernelBase, KernelBuffer, KernelBufferSize);
   Print(L"Kernel copied to memory at: %p\n", KernelBase);
 
-  // Setup and load E820 Entries
-  SetupMemoryMaps();
   
   // End the UEFI services and jump to the kernel
   gBS->ExitBootServices(ImageHandle, 0);
