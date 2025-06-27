@@ -52,5 +52,6 @@ void* multiheap_palloc(struct multiheap* multiheap, size_t size);
 struct multiheap* multiheap_new(struct heap* starting_heap);
 void multiheap_free(struct multiheap* multiheap, void* ptr);
 void multiheap_free_heap(struct multiheap* multiheap);
+void* multiheap_realloc(struct multiheap* multiheap, void* old_ptr, size_t new_size);
 
 #endif

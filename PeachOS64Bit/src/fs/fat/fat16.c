@@ -116,6 +116,9 @@ struct fat_private
 
     // Used in situations where we stream the directory
     struct disk_stream *directory_stream;
+
+    // FAT16 name
+    char name[11];
 };
 
 int fat16_resolve(struct disk *disk);
@@ -124,7 +127,7 @@ int fat16_read(struct disk *disk, void *descriptor, uint32_t size, uint32_t nmem
 int fat16_seek(void *private, uint32_t offset, FILE_SEEK_MODE seek_mode);
 int fat16_stat(struct disk* disk, void* private, struct file_stat* stat);
 int fat16_close(void* private);
-
+int fat16_volume_name(void* private, char* name_out, size_t max);
 struct filesystem fat16_fs =
     {
         .resolve = fat16_resolve,
@@ -132,7 +135,8 @@ struct filesystem fat16_fs =
         .read = fat16_read,
         .seek = fat16_seek,
         .stat = fat16_stat,
-        .close = fat16_close
+        .close = fat16_close,
+        .volume_name=fat16_volume_name
     };
 
 struct filesystem *fat16_init()
@@ -288,6 +292,10 @@ int fat16_resolve(struct disk *disk)
         res = -EIO;
         goto out;
     }
+
+    // Copy the name into the private data
+    strncpy(fat_private->name, (const char*) fat_private->header.shared.extended_header.volume_id_string, sizeof(fat_private->name));
+    
 
 out:
     if (stream)
@@ -672,6 +680,13 @@ static void fat16_free_file_descriptor(struct fat_file_descriptor* desc)
 int fat16_close(void* private)
 {
     fat16_free_file_descriptor((struct fat_file_descriptor*) private);
+    return 0;
+}
+
+int fat16_volume_name(void* private, char* name_out, size_t max)
+{
+    struct fat_private* fs_private = (struct fat_private*) private;
+    strncpy(name_out, fs_private->name, max);
     return 0;
 }
 

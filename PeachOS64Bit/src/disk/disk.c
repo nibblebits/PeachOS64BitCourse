@@ -124,7 +124,7 @@ void disk_search_and_init()
         goto out;
     }
 out:
-    return res;
+    return;
 }
 
 struct disk* disk_primary()

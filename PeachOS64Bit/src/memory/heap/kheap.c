@@ -36,6 +36,11 @@ void kheap_post_paging()
     multiheap_ready(kernel_multiheap);
 }
 
+void* krealloc(void* old_ptr, size_t new_size)
+{
+    return multiheap_realloc(kernel_multiheap, old_ptr, new_size);
+}
+
 void kheap_init()
 {
     struct e820_entry* entry = kheap_get_allowable_memory_region_for_minimal_heap();
