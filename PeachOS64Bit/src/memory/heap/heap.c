@@ -135,6 +135,7 @@ int64_t heap_get_start_block(struct heap *heap, uintptr_t total_blocks)
     return bs;
 }
 
+
 bool heap_is_block_range_free(struct heap* heap, size_t starting_block, size_t ending_block)
 {
     struct heap_table* table = heap->table;

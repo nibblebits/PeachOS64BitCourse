@@ -3,12 +3,13 @@
 #include "string/string.h"
 #include "memory/heap/kheap.h"
 #include "memory/memory.h"
+#include "disk/disk.h"
 #include "status.h"
 
 static int pathparser_path_valid_format(const char* filename)
 {
     int len = strnlen(filename, PEACHOS_MAX_PATH);
-    return (len >= 3 && isdigit(filename[0]) && memcmp((void*)&filename[1], ":/", 2) == 0);
+    return (len >= 3 && (isdigit(filename[0]) || filename[0] == '@') && memcmp((void*)&filename[1], ":/", 2) == 0);
 }
 
 static int pathparser_get_drive_by_path(const char** path)
@@ -18,8 +19,20 @@ static int pathparser_get_drive_by_path(const char** path)
         return -EBADPATH;
     }
 
+    char drive_character = *path[0];
     int drive_no = tonumericdigit(*path[0]);
+    if (drive_character == '@')
+    {
+        // We got an @ we must resolve the primary filesystem
+        struct disk* primary_fs_disk = disk_primary_fs_disk();
+        if (!primary_fs_disk)
+        {
+            // No primary filesystem was mounted
+            return -EIO;
+        }
 
+        drive_no = primary_fs_disk->id;
+    }
     // Add 3 bytes to skip drive number 0:/ 1:/ 2:/
     *path += 3;
     return drive_no;

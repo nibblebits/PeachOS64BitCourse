@@ -33,8 +33,11 @@ struct disk
     void* fs_private;
 };
 
+int disk_create_new(int type, int starting_lba, int ending_lba, size_t sector_size, struct disk** disk_out);
 void disk_search_and_init();
 struct disk* disk_get(int index);
 int disk_read_block(struct disk* idisk, unsigned int lba, int total, void* buf);
+struct disk* disk_primary_fs_disk();
+struct disk* disk_primary();
 
 #endif
