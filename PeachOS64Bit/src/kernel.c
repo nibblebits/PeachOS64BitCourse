@@ -13,6 +13,7 @@
 #include "task/process.h"
 #include "fs/file.h"
 #include "disk/disk.h"
+#include "disk/gpt.h"
 #include "fs/pparser.h"
 #include "disk/streamer.h"
 #include "task/tss.h"
@@ -182,6 +183,9 @@ void kernel_main()
 
     // Enable the disks
     disk_search_and_init();
+
+    // Initialize GPT(gloabl partition table) drives
+    gpt_init();
 
     // Allocate a 1 MB stack for the kernel IDT 
     size_t stack_size = 1024*1024;
