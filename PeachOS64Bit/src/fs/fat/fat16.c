@@ -149,11 +149,11 @@ static void fat16_init_private(struct disk *disk, struct fat_private *private)
 {
     memset(private, 0, sizeof(struct fat_private));
 private
-    ->cluster_read_stream = diskstreamer_new(disk->id);
+    ->cluster_read_stream = diskstreamer_new_from_disk(disk);
 private
-    ->fat_read_stream = diskstreamer_new(disk->id);
+    ->fat_read_stream = diskstreamer_new_from_disk(disk);
 private
-    ->directory_stream = diskstreamer_new(disk->id);
+    ->directory_stream = diskstreamer_new_from_disk(disk);
 }
 
 int fat16_sector_to_absolute(struct disk *disk, int sector)
@@ -295,7 +295,7 @@ int fat16_resolve(struct disk *disk)
 
     // Copy the name into the private data
     strncpy(fat_private->name, (const char*) fat_private->header.shared.extended_header.volume_id_string, sizeof(fat_private->name));
-    
+
 
 out:
     if (stream)
