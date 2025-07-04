@@ -4,6 +4,7 @@ global _start
 global kernel_registers
 global div_test
 global gdt
+global default_graphics_info
 extern kernel_main
 
 ; Segment Selectors
@@ -52,6 +53,14 @@ long_mode_entry:
 
 long_mode_new_gdt_complete: 
     
+    ; Copy over the framebuffer information
+    mov [default_graphics_info + 0], rdi
+
+    ; Copy over the 32-bit fields
+    mov [default_graphics_info + 8], edx
+    mov [default_graphics_info + 12], ecx
+    mov [default_graphics_info + 16], esi
+
     ; Remap the master PIC
     mov al, 0x11    ; ICW1: Start initialization in cascade mode
     out 0x20, al    ; Send ICW1 to master command port
@@ -204,3 +213,54 @@ PD_Table:
     dq addr + 0x83   ; 2-MB Pages Present, RW
     %assign addr addr + 0x200000
     %endrep 
+
+
+align 8
+
+;struct graphics_info
+;{
+;    struct framebuffer_pixel* framebuffer;
+;    uint32_t horizontal_resolution;
+;    uint32_t vertical_resolution;
+;    uint32_t pixels_per_scanline;
+;    struct framebuffer_pixel* pixels;
+;   uint32_t width;
+;    uint32_t height;
+;    uint32_t starting_x;
+;    uint32_t starting_y;
+;    uint32_t relative_x;
+;    uint32_t relative_y;
+;    struct graphics_info* parent;
+;    struct vector* children;
+;   uint32_t flags;
+;   uint32_t z_index;
+;    struct framebuffer_pixel ignore_color;
+;    struct framebuffer_pixel transparency_key;
+;    struct
+;    {
+;        GRAPHICS_MOUSE_CLICK_FUNCTION mouse_click;
+;        GRAPHICS_MOUSE_MOVE_FUNCTION mouse_move;
+;    } event_handlers;
+;};   
+
+default_graphics_info:
+    dq 0    ; Frame buffer (offset 0, 8 bytes)
+    dd 0    ; Horiziontal resolution (offset 8, 4 bytes)
+    dd 0    ; vertical resolution (offset 12, 4 bytes)
+    dd 0    ; pixels per scanline offset 16, 4 bytes
+    dd 0    ; Padding offset 20, 4 bytes
+    dq 0    ; pixels pointers (offset 24, 8 bytes)
+    dd 0    ; width offset 32 , 4 bytes
+    dd 0    ; height offset 36 4 bytes
+    dd 0    ; starting x position offset 40 4 bytes
+    dd 0    ; starting y offset 44, 4 bytes
+    dd 0    ; relative x offset 48 4 bytes
+    dd 0    ; relative y offset 52 4 byte
+    dq 0    ; parent offset 56 8 bytes
+    dq 0    ; children offset 64 8 bytes
+    dd 0    ; flags offset 72 4 bytes
+    dd 0    ; z-index offset 76 4 bytes 
+    dd 0    ; ignore color offset 80 4 bytes
+    dd 0    ; transparency key offset 84 4 bytes
+    dq 0    ; mouse click offset 88 8 bytes
+    dq 0    ; mouse move 64 bits.

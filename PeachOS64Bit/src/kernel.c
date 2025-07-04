@@ -18,7 +18,7 @@
 #include "disk/streamer.h"
 #include "task/tss.h"
 #include "gdt/gdt.h"
-
+#include "graphics/graphics.h"
 #include "config.h"
 #include "status.h"
 
@@ -146,6 +146,8 @@ struct paging_desc* kernel_desc()
     return kernel_paging_desc;
 }
 
+// defined in kernel.asm
+extern struct graphics_info default_graphics_info;
 void kernel_main()
 {
     terminal_initialize();
@@ -174,6 +176,21 @@ void kernel_main()
 
     // The multi-heap is ready
     kheap_post_paging();
+
+    // Setup the graphics
+    graphics_setup(&default_graphics_info);
+
+    struct framebuffer_pixel pixel = {0};
+    pixel.red = 0xff;
+    for(int x = 0; x < 100; x++)
+    {
+        for (int y = 0; y < 100; y++)
+        {
+            graphics_draw_pixel(graphics_screen_info(), x, y, pixel);
+        }
+    }
+    
+    graphics_redraw_all();
 
     // Enable interrupt descriptor table
     idt_init();
