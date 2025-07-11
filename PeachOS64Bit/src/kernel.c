@@ -19,6 +19,7 @@
 #include "task/tss.h"
 #include "gdt/gdt.h"
 #include "graphics/graphics.h"
+#include "graphics/image/image.h"
 #include "config.h"
 #include "status.h"
 
@@ -180,18 +181,6 @@ void kernel_main()
     // Setup the graphics
     graphics_setup(&default_graphics_info);
 
-    struct framebuffer_pixel pixel = {0};
-    pixel.red = 0xff;
-    for(int x = 0; x < 100; x++)
-    {
-        for (int y = 0; y < 100; y++)
-        {
-            graphics_draw_pixel(graphics_screen_info(), x, y, pixel);
-        }
-    }
-    
-    graphics_redraw_all();
-
     // Enable interrupt descriptor table
     idt_init();
 
@@ -230,6 +219,11 @@ void kernel_main()
 
     // Initialize the keyboard
     keyboard_init();
+
+    struct image* img = graphics_image_load("@:/bkground.bmp");
+    graphics_draw_image(NULL, img, 0, 0);
+    graphics_redraw_all();
+
 
     print("Loading program...\n");
     struct process* process = 0;

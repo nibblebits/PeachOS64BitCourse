@@ -10,6 +10,7 @@
 #include "memory/heap/kheap.h"
 
 struct vector* image_formats;
+int graphics_image_formats_load();
 
 struct image_format* graphics_image_format_get(const char* mime_type)
 {

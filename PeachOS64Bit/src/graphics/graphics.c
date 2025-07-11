@@ -1,5 +1,4 @@
 #include "graphics.h"
-#include "graphics/image/image.h"
 #include "kernel.h"
 #include "memory/paging/paging.h"
 #include "memory/heap/kheap.h"
@@ -129,6 +128,39 @@ void graphics_draw_pixel(struct graphics_info* graphics_info, uint32_t x, uint32
     }
 }
 
+void graphics_draw_image(struct graphics_info* graphics_info, struct image* image, int x, int y )
+{
+    if (!image)
+    {
+        return;
+    }
+
+    if (!graphics_info)
+    {
+        graphics_info = loaded_graphics_info;
+    }
+
+    // Loop through each image pixel
+    for(size_t lx = 0; lx < (size_t)image->width; lx++)
+    {
+        for(size_t ly = 0; ly < (size_t) image->height; ly++)
+        {
+            size_t sx = x + lx;
+            size_t sy = y + ly;
+
+            image_pixel_data* pixel_data =
+                &((image_pixel_data*)image->data)[(ly*image->width)+lx];
+            
+            struct framebuffer_pixel fb_pixel = {0};
+            fb_pixel.red = pixel_data->R;
+            fb_pixel.green = pixel_data->G;
+            fb_pixel.blue = pixel_data->B;
+
+            // Draw the pixel
+            graphics_draw_pixel(graphics_info, sx, sy, fb_pixel);
+        }
+    }
+}
 void graphics_redraw_only(struct graphics_info* g)
 {
     if (!g)
@@ -206,5 +238,5 @@ void graphics_setup(struct graphics_info* main_graphics_info)
     vector_push(graphics_info_vector, &main_graphics_info);
 
     // Load the image formats.
-    graphics_image_formats_load();
+    graphics_image_formats_init();
 }

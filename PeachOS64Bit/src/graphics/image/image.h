@@ -49,7 +49,7 @@ struct image_format
     void* private;
 };
 
-int graphics_image_formats_load();
+int graphics_image_formats_init();
 void graphics_image_format_unload(struct image_format* format);
 void graphics_image_formats_unload();
 void graphics_image_free(struct image* image);

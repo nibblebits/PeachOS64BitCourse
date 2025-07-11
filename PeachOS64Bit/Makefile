@@ -10,6 +10,7 @@ all: ./bin/boot.bin ./bin/kernel.bin user_programs
 	# Copy a file over
 	sudo cp ./bin/kernel.bin /mnt/d/kernel.bin 
 	sudo cp ./programs/simple/build/simple.bin /mnt/d
+	sudo cp ./data/images/bkground.bmp /mnt/d
 	sudo cp ./programs/blank/blank.elf /mnt/d
 	sudo cp ./programs/shell/shell.elf /mnt/d
 
