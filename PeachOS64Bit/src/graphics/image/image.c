@@ -1,4 +1,5 @@
 #include "graphics/image/image.h"
+#include "graphics/image/bmp.h"
 #include "graphics/graphics.h"
 #include "memory/memory.h"
 #include "fs/file.h"
@@ -121,6 +122,8 @@ out:
             img = NULL;
         }
     }
+
+    return img;
 }
 
 void graphics_image_free(struct image* image)
@@ -190,11 +193,11 @@ out:
 
 int graphics_image_formats_load()
 {
-   // graphics_image_format_register(graphics_image_format_bmp_setup());
+   graphics_image_format_register(graphics_image_format_bmp_setup());
    return 0;
 }
 
-void grpahics_image_format_unload(struct image_format* format)
+void graphics_image_format_unload(struct image_format* format)
 {
     if(format->on_unregister_function)
     {

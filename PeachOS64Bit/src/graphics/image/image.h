@@ -49,5 +49,12 @@ struct image_format
     void* private;
 };
 
-
+int graphics_image_formats_load();
+void graphics_image_format_unload(struct image_format* format);
+void graphics_image_formats_unload();
+void graphics_image_free(struct image* image);
+struct image* graphics_image_load(const char* path);
+image_pixel_data graphics_image_get_pixel(struct image* image, int x, int y);
+struct image* graphics_image_load_from_memory(void* memory, size_t max);
+struct image_format* graphics_image_format_get(const char* mime_type);
 #endif

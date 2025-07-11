@@ -1,4 +1,5 @@
 #include "graphics.h"
+#include "graphics/image/image.h"
 #include "kernel.h"
 #include "memory/paging/paging.h"
 #include "memory/heap/kheap.h"
@@ -204,5 +205,6 @@ void graphics_setup(struct graphics_info* main_graphics_info)
     // Start by pushing the main graphics information to the vector
     vector_push(graphics_info_vector, &main_graphics_info);
 
-    // TODO: Load the image formats.
+    // Load the image formats.
+    graphics_image_formats_load();
 }
