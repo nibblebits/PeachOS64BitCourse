@@ -86,6 +86,7 @@ struct graphics_info
     } event_handlers;
 };
 
+void graphics_redraw_region(struct graphics_info* g, uint32_t local_x , uint32_t local_y, uint32_t width, uint32_t height);
 void graphics_redraw(struct graphics_info* g);
 void graphics_draw_pixel(struct graphics_info* graphics_info, uint32_t x, uint32_t y, struct framebuffer_pixel pixel);
 void graphics_draw_image(struct graphics_info* graphics_info, struct image* image, int x, int y);
