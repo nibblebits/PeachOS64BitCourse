@@ -94,6 +94,8 @@ struct font* font_load_from_image(const char* filename, size_t pixel_width, size
             }
         }
     }
+
+    return font_create(character_data, total_characters, pixel_width, pixel_height, FONT_IMAGE_DRAW_SUBTRACT_FROM_INDEX);
 }
 
 struct font* font_get_loaded_font(const char* filename)
@@ -208,6 +210,10 @@ int font_draw_text(struct graphics_info* graphics_info, struct font* font, int s
     int res = 0;
     int x = screen_x;
     int y = screen_y;
+    if (!font)
+    {
+        font = font_get_system_font();
+    }
     while(*str != 0)
     {
         res = font_draw(graphics_info, font, x, y, *str, font_color);

@@ -11,6 +11,7 @@
 #include "isr80h/isr80h.h"
 #include "task/task.h"
 #include "task/process.h"
+#include "graphics/font.h"
 #include "fs/file.h"
 #include "disk/disk.h"
 #include "disk/gpt.h"
@@ -193,6 +194,9 @@ void kernel_main()
     // Initialize GPT(gloabl partition table) drives
     gpt_init();
 
+    // Initialize the font system
+    font_system_init();
+
     // Allocate a 1 MB stack for the kernel IDT 
     size_t stack_size = 1024*1024;
     void* megabyte_stack_tss_end = kzalloc(stack_size);
@@ -220,11 +224,18 @@ void kernel_main()
     // Initialize the keyboard
     keyboard_init();
 
-    struct image* img = graphics_image_load("@:/bkground.bmp");
-    graphics_draw_image(NULL, img, 0, 0);
+    // struct image* img = graphics_image_load("@:/bkground.bmp");
+    // graphics_draw_image(NULL, img, 0, 0);
+    // graphics_redraw_all();
+
+    struct framebuffer_pixel white = {0};
+    white.red = 0xff;
+    white.blue = 0xff;
+    white.green = 0xff;
+
+    font_draw_text(graphics_screen_info(), NULL, 0, 0, "Hello world", white);
     graphics_redraw_all();
-
-
+    
     print("Loading program...\n");
     struct process* process = 0;
     int res = process_load_switch("@:/shell.elf", &process);
