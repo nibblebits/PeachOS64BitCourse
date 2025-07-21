@@ -135,7 +135,7 @@ struct font* font_load(const char* filename)
 
     return loaded_font;
 }
-struct font* font_create(uint8_t* character_data, size_t character_count, size_t bits_width_per_character, size_t bits_height_per_chracter, uint8_t subtract_from_ascii_char_index_for_drawing)
+struct font* font_create(uint8_t* character_data, size_t character_count, size_t bits_width_per_character, size_t bits_height_per_character, uint8_t subtract_from_ascii_char_index_for_drawing)
 {
     struct font* font = kzalloc(sizeof(struct font));
     if (!font)
@@ -146,7 +146,7 @@ struct font* font_create(uint8_t* character_data, size_t character_count, size_t
     font->character_count = character_count;
     font->character_data = character_data;
     font->bits_width_per_character = bits_width_per_character;
-    font->bits_height_per_chracter = bits_height_per_chracter;
+    font->bits_height_per_character = bits_height_per_character;
     font->subtract_from_ascii_char_index_for_drawing = subtract_from_ascii_char_index_for_drawing;
     return font;
 }
@@ -168,7 +168,7 @@ int font_draw_from_index(struct graphics_info* graphics_info, struct font* font,
 
     size_t total_required_bits_per_character = 
         font->bits_width_per_character *
-        font->bits_height_per_chracter;
+        font->bits_height_per_character;
     
     size_t total_required_bytes_per_character = total_required_bits_per_character / 8;
     if ((total_required_bits_per_character % 8) != 0)
@@ -179,7 +179,7 @@ int font_draw_from_index(struct graphics_info* graphics_info, struct font* font,
     size_t character_index = index_character * total_required_bytes_per_character;
     for(size_t x = 0; x < font->bits_width_per_character; x++)
     {
-        for(size_t y = 0; y < font->bits_height_per_chracter; y++)
+        for(size_t y = 0; y < font->bits_height_per_character; y++)
         {
             size_t char_offset = character_index;
             size_t bit_index = y * font->bits_width_per_character + x;
@@ -194,7 +194,7 @@ int font_draw_from_index(struct graphics_info* graphics_info, struct font* font,
     }
 
     // redraw the region to the screen
-    graphics_redraw_graphics_to_screen(graphics_info, screen_x, screen_y, font->bits_width_per_character, font->bits_height_per_chracter);
+    graphics_redraw_graphics_to_screen(graphics_info, screen_x, screen_y, font->bits_width_per_character, font->bits_height_per_character);
 out:
     return res;
 }

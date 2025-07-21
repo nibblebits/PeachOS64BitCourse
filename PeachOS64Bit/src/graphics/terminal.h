@@ -41,4 +41,10 @@ struct terminal
     int flags;
 };
 
+void terminal_system_setup();
+void terminal_free(struct terminal* terminal);
+struct terminal* terminal_create(struct graphics_info* graphics_info, int starting_x, int starting_y, size_t width, size_t height, struct font* font, struct framebuffer_pixel font_color, int flags);
+void terminal_background_save(struct terminal* terminal);
+struct terminal* terminal_get_at_screen_position(size_t x, size_t y, struct terminal* ignore_terminal);
+
 #endif

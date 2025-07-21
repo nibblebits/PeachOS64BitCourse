@@ -22,7 +22,7 @@ struct font
     uint8_t* character_data;
 
     size_t bits_width_per_character;
-    size_t bits_height_per_chracter;
+    size_t bits_height_per_character;
 
     uint8_t subtract_from_ascii_char_index_for_drawing;
 
@@ -32,7 +32,7 @@ struct font
 int font_system_init();
 int font_draw_text(struct graphics_info* graphics_info, struct font* font, int screen_x, int screen_y, const char* str, struct framebuffer_pixel font_color);
 int font_draw(struct graphics_info* graphics_info, struct font* font, int screen_x, int screen_y, int character, struct framebuffer_pixel font_color);
-struct font* font_create(uint8_t* character_data, size_t character_count, size_t bits_width_per_character, size_t bits_height_per_chracter, uint8_t subtract_from_ascii_char_index_for_drawing);
+struct font* font_create(uint8_t* character_data, size_t character_count, size_t bits_width_per_character, size_t bits_height_per_character, uint8_t subtract_from_ascii_char_index_for_drawing);
 struct font* font_load(const char* filename);
 struct font* font_get_loaded_font(const char* filename);
 struct font* font_get_system_font();
