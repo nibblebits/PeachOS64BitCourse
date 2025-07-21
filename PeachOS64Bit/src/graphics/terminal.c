@@ -267,3 +267,163 @@ void terminal_restore_background(struct terminal* terminal, int sx, int sy, int 
     size_t abs_y = terminal->bounds.abs_y + sy;
     graphics_redraw_graphics_to_screen(terminal->graphics_info, abs_x, abs_y, width,height);
 }
+
+int terminal_backspace(struct terminal* terminal)
+{
+    int res = 0; 
+    if (!(terminal->flags & TERMINAL_FLAG_BACKSPACE_ALLOWED))
+    {
+        return 0;
+    }
+
+    int total_rows = terminal_total_rows(terminal);
+    int total_cols = terminal_total_cols(terminal);
+    int current_col = terminal_cursor_col(terminal);
+    int current_row = terminal_cursor_row(terminal);
+
+    current_col--;
+    if (current_col < 0)
+    {
+        current_col = total_cols -1;
+        current_row--;
+    }
+
+    if (current_row < 0)
+    {
+        current_row = total_rows -1;
+        current_col = 0;
+    }
+
+    if (current_col >= total_cols)
+    {
+        current_col = 0;
+        current_row++;
+    }
+
+    if (current_row >= total_rows)
+    {
+        current_row = 0;
+        current_col = 0;
+    }
+
+    // Update the cursor
+    terminal_cursor_set(terminal, current_row, current_col);
+
+    size_t rel_x = terminal->text.col * terminal->font->bits_width_per_character;
+    size_t rel_y = terminal->text.row * terminal->font->bits_height_per_character;
+    terminal_restore_background(terminal, rel_x, rel_y, terminal->font->bits_width_per_character, terminal->font->bits_height_per_character);
+    return res;
+}
+
+int terminal_write(struct terminal* terminal, int c)
+{
+    if (c == '\n')
+    {
+        terminal_handle_newline(terminal);
+        return 0;
+    }
+
+    if (c == 0x08 && terminal->flags & TERMINAL_FLAG_BACKSPACE_ALLOWED)
+    {
+        // we can do a backspace lets do it
+        terminal_backspace(terminal);
+        return 0;
+    }
+
+    // We have a normal character
+
+    // Calcualte the absolute positions for drawing
+    size_t abs_x = terminal_abs_x_for_next_character(terminal);
+    size_t abs_y = terminal_abs_y_for_next_character(terminal);
+    font_draw(terminal->graphics_info, terminal->font, abs_x, abs_y, c, terminal->font_color);
+    // Update the terminal cursor position
+    terminal_update_position_after_draw(terminal);
+
+    return 0;
+}
+
+int terminal_pixel_set(struct terminal* terminal, size_t x, size_t y, struct framebuffer_pixel pixel_color)
+{
+    int res =0;
+
+    size_t abs_x = terminal->bounds.abs_x + x;
+    size_t abs_y = terminal->bounds.abs_y + y;
+    if (!terminal_bounds_check(terminal, abs_x, abs_y))
+    {
+        res = -EINVARG;
+        goto out;
+    }
+
+    graphics_draw_pixel(terminal->graphics_info, abs_x, abs_y, pixel_color);
+out:
+    return res;
+}
+
+void terminal_transparency_key_set(struct terminal* terminal, struct framebuffer_pixel pixel_color)
+{
+    // TODO: Implement the transparency key on the graphics.
+   // graphics_transparency_key_set(terminal->graphics_info, pixel_color);
+}
+
+void terminal_transparency_key_remove(struct terminal* terminal)
+{
+    //graphics_transparency_key_remove(terminal->graphics_info);
+}
+
+void terminal_ignore_color(struct terminal* terminal, struct framebuffer_pixel pixel_color)
+{
+  //  graphics_ignore_color(terminal->graphics_info, pixel_color);
+}
+
+void terminal_ignore_color_finish(struct terminal* terminal)
+{
+    //graphics_ignore_color_finish(terminal->graphics_info);
+}
+
+int terminal_draw_image(struct terminal* terminal, uint32_t x, uint32_t y, struct image* img)
+{
+    int res = 0;
+    size_t abs_x = terminal->bounds.abs_x + x;
+    size_t abs_y = terminal->bounds.abs_y + y;
+    if (!terminal_bounds_check(terminal, abs_x, abs_y))
+    {
+        res = -EINVARG;
+        goto out;
+    }
+
+    graphics_draw_image(terminal->graphics_info, img, abs_x, abs_y);
+out:
+    return res;
+}
+
+int terminal_draw_rect(struct terminal* terminal, uint32_t x, uint32_t y , size_t width, size_t height, struct framebuffer_pixel pixel_color)
+{
+    int res = 0;
+    size_t abs_x = terminal->bounds.abs_x + x;
+    size_t abs_y = terminal->bounds.abs_y + y;
+    if (!terminal_bounds_check(terminal, abs_x, abs_y))
+    {
+        res = -EINVARG;
+        goto out;
+    }
+
+    graphics_draw_rect(terminal->graphics_info, abs_x, abs_y, width, height, pixel_color);
+out:
+    return res;
+}
+
+int terminal_print(struct terminal* terminal, const char* message)
+{
+    int res = 0;
+    while(*message != 0)
+    {
+        res = terminal_write(terminal, *message);
+        if (res < 0)
+        {
+            break;
+        }
+        message++;
+    }
+
+    return res;
+}
