@@ -268,7 +268,50 @@ void graphics_redraw_region(struct graphics_info* g, uint32_t local_x , uint32_t
     }
 }
 
+void graphics_ignore_color(struct graphics_info* graphics_info, struct framebuffer_pixel pixel_color)
+{
+    graphics_info->ignore_color = pixel_color;
+}
 
+void graphics_transparency_key_set(struct graphics_info* graphics_info, struct framebuffer_pixel pixel_color)
+{
+    graphics_info->ignore_color = pixel_color;
+}
+
+void graphics_transparency_key_remove(struct graphics_info* graphics_info)
+{
+    // black means transparency
+    struct framebuffer_pixel pixel_black = {0};
+    graphics_info->transparency_key = pixel_black;
+}
+
+void graphics_ignore_color_finish(struct graphics_info* graphics_info)
+{
+    // black means transparent
+    struct framebuffer_pixel black_color = {0};
+    graphics_info->ignore_color = black_color;
+}
+
+
+void graphics_draw_rect(
+    struct graphics_info* graphics_info,
+    uint32_t x,
+    uint32_t y,
+    size_t width,
+    size_t height,
+    struct framebuffer_pixel pixel_color
+)
+{
+    uint32_t x_end = x + (uint32_t) width;
+    uint32_t y_end = y + (uint32_t) height;
+    for (uint32_t lx = x; lx < x_end; lx++)
+    {
+        for(uint32_t ly = y; ly < y_end; ly++)
+        {
+            graphics_draw_pixel(graphics_info, lx, ly, pixel_color);
+        }
+    }
+}
 
 void graphics_redraw_graphics_to_screen(struct graphics_info* relative_graphics, uint32_t rel_x, uint32_t rel_y, uint32_t width, uint32_t height)
 {
