@@ -361,23 +361,22 @@ out:
 
 void terminal_transparency_key_set(struct terminal* terminal, struct framebuffer_pixel pixel_color)
 {
-    // TODO: Implement the transparency key on the graphics.
-   // graphics_transparency_key_set(terminal->graphics_info, pixel_color);
+    graphics_transparency_key_set(terminal->graphics_info, pixel_color);
 }
 
 void terminal_transparency_key_remove(struct terminal* terminal)
 {
-    //graphics_transparency_key_remove(terminal->graphics_info);
+    graphics_transparency_key_remove(terminal->graphics_info);
 }
 
 void terminal_ignore_color(struct terminal* terminal, struct framebuffer_pixel pixel_color)
 {
-  //  graphics_ignore_color(terminal->graphics_info, pixel_color);
+    graphics_ignore_color(terminal->graphics_info, pixel_color);
 }
 
 void terminal_ignore_color_finish(struct terminal* terminal)
 {
-    //graphics_ignore_color_finish(terminal->graphics_info);
+    graphics_ignore_color_finish(terminal->graphics_info);
 }
 
 int terminal_draw_image(struct terminal* terminal, uint32_t x, uint32_t y, struct image* img)

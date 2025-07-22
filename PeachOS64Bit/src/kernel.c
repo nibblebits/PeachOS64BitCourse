@@ -12,6 +12,7 @@
 #include "task/task.h"
 #include "task/process.h"
 #include "graphics/font.h"
+#include "graphics/terminal.h"
 #include "fs/file.h"
 #include "disk/disk.h"
 #include "disk/gpt.h"
@@ -24,75 +25,16 @@
 #include "config.h"
 #include "status.h"
 
-uint16_t *video_mem = 0;
-uint16_t terminal_row = 0;
-uint16_t terminal_col = 0;
-
-uint16_t terminal_make_char(char c, char colour)
-{
-    return (colour << 8) | c;
-}
-
-void terminal_putchar(int x, int y, char c, char colour)
-{
-    video_mem[(y * VGA_WIDTH) + x] = terminal_make_char(c, colour);
-}
-
-void terminal_backspace()
-{
-    if (terminal_row == 0 && terminal_col == 0)
-    {
-        return;
-    }
-
-    if (terminal_col == 0)
-    {
-        terminal_row -= 1;
-        terminal_col = VGA_WIDTH;
-    }
-
-    terminal_col -= 1;
-    terminal_writechar(' ', 15);
-    terminal_col -= 1;
-}
-
+struct terminal* system_terminal = NULL;
 void terminal_writechar(char c, char colour)
 {
-    if (c == '\n')
-    {
-        terminal_row += 1;
-        terminal_col = 0;
-        return;
-    }
+   if (!system_terminal)
+   {
+     return;
+   }
 
-    if (c == 0x08)
-    {
-        terminal_backspace();
-        return;
-    }
-
-    terminal_putchar(terminal_col, terminal_row, c, colour);
-    terminal_col += 1;
-    if (terminal_col >= VGA_WIDTH)
-    {
-        terminal_col = 0;
-        terminal_row += 1;
-    }
+   terminal_write(system_terminal, c);
 }
-void terminal_initialize()
-{
-    video_mem = (uint16_t *)(0xB8000);
-    terminal_row = 0;
-    terminal_col = 0;
-    for (int y = 0; y < VGA_HEIGHT; y++)
-    {
-        for (int x = 0; x < VGA_WIDTH; x++)
-        {
-            terminal_putchar(x, y, ' ', 0);
-        }
-    }
-}
-
 void print(const char *str)
 {
     size_t len = strlen(str);
@@ -152,7 +94,8 @@ struct paging_desc* kernel_desc()
 extern struct graphics_info default_graphics_info;
 void kernel_main()
 {
-    terminal_initialize();
+    struct graphics_info* screen_info = NULL;
+
     print("Hello 64-bit!\n");
 
     print("Total memory\n");
@@ -182,6 +125,8 @@ void kernel_main()
     // Setup the graphics
     graphics_setup(&default_graphics_info);
 
+    screen_info = graphics_screen_info();
+
     // Enable interrupt descriptor table
     idt_init();
 
@@ -197,6 +142,23 @@ void kernel_main()
     // Initialize the font system
     font_system_init();
 
+    // Setup the terminal system
+    terminal_system_setup();
+
+    struct font* font = font_get_system_font();
+    if (!font)
+    {
+        panic("Failed to load system font\n");
+    }
+
+    struct framebuffer_pixel font_color = {0};
+    font_color.red = 0xff;
+
+    system_terminal = terminal_create(screen_info, 0, 0, screen_info->width, screen_info->height, font, font_color, TERMINAL_FLAG_BACKSPACE_ALLOWED);
+    if (!system_terminal)
+    {
+        panic("Failed to create system terminal\n");
+    }
     // Allocate a 1 MB stack for the kernel IDT 
     size_t stack_size = 1024*1024;
     void* megabyte_stack_tss_end = kzalloc(stack_size);
@@ -228,14 +190,6 @@ void kernel_main()
     // graphics_draw_image(NULL, img, 0, 0);
     // graphics_redraw_all();
 
-    struct framebuffer_pixel white = {0};
-    white.red = 0xff;
-    white.blue = 0xff;
-    white.green = 0xff;
-
-    font_draw_text(graphics_screen_info(), NULL, 0, 0, "Hello world", white);
-    graphics_redraw_all();
-    
     print("Loading program...\n");
     struct process* process = 0;
     int res = process_load_switch("@:/shell.elf", &process);
