@@ -47,7 +47,7 @@ void* isr80h_command7_invoke_system_command(struct interrupt_frame* frame)
     const char* program_name = root_command_argument->argument;
 
     char path[PEACHOS_MAX_PATH];
-    strcpy(path, "0:/");
+    strcpy(path, "@:/");
     strncpy(path+3, program_name, sizeof(path));
     
     struct process* process = 0;
