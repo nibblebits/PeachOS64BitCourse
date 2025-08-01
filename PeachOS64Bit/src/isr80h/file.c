@@ -1,0 +1,36 @@
+#include "file.h"
+#include "task/task.h"
+#include "task/process.h"
+#include "idt/idt.h"
+#include <stddef.h>
+
+void* isr80h_command10_fopen(struct interrupt_frame* frame)
+{
+    int fd = 0;
+    void* filename_virt_addr = NULL;
+    void* mode_virt_addr = NULL;
+    filename_virt_addr = task_get_stack_item(task_current(), 0);
+    filename_virt_addr = task_virtual_address_to_physical(task_current(), filename_virt_addr);
+    if (!filename_virt_addr)
+    {
+        fd = -1;
+        goto out;
+    }
+
+    mode_virt_addr = task_get_stack_item(task_current(), 1);
+    mode_virt_addr = task_virtual_address_to_physical(task_current(), mode_virt_addr);
+    if (!mode_virt_addr)
+    {
+        fd = -1;
+        goto out;
+    }
+
+    fd = process_fopen(task_current()->process, filename_virt_addr, mode_virt_addr);
+    if (fd <= 0)
+    {
+        goto out;
+    }
+
+out:
+    return (void*) (int64_t) fd;
+}

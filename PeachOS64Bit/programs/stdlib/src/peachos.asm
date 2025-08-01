@@ -11,6 +11,7 @@ global peachos_process_load_start:function
 global peachos_process_get_arguments:function 
 global peachos_system:function
 global peachos_exit:function
+global peachos_fopen:function
 
 ; void print(const char* filename)
 print:
@@ -80,3 +81,14 @@ peachos_exit:
     mov rax, 9 ; Command 9 process exit
     int 0x80
     ret
+
+; int peachos_fopen(const char* filename, const char* mode)
+
+peachos_fopen:
+    mov rax, 10 ; Command 10, fopen
+    push qword rsi   ; Pushes the mode 
+    push qword rdi   ; Push the filename
+    int 0x80        ; call the kernel
+    add rsp, 16 ; restore the stack
+    ret
+    

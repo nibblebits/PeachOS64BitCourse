@@ -31,4 +31,6 @@ void peachos_process_get_arguments(struct process_arguments* arguments);
 int peachos_system(struct command_argument* arguments);
 int peachos_system_run(const char* command);
 void peachos_exit();
+
+int peachos_fopen(const char* filename, const char* mode);
 #endif

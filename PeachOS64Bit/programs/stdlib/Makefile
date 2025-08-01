@@ -1,4 +1,4 @@
-FILES=./build/start.asm.o ./build/start.o ./build/peachos.asm.o ./build/peachos.o ./build/stdlib.o ./build/stdio.o ./build/string.o ./build/memory.o
+FILES=./build/start.asm.o ./build/start.o ./build/peachos.asm.o ./build/file.o ./build/peachos.o ./build/stdlib.o ./build/stdio.o ./build/string.o ./build/memory.o
 INCLUDES=-I./src
 FLAGS= -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
 
@@ -16,6 +16,10 @@ all: ${FILES}
 
 ./build/stdlib.o: ./src/stdlib.c
 	x86_64-elf-gcc ${INCLUDES} $(FLAGS) -std=gnu99 -c ./src/stdlib.c -o ./build/stdlib.o
+
+
+./build/file.o: ./src/file.c
+	x86_64-elf-gcc ${INCLUDES} $(FLAGS) -std=gnu99 -c ./src/file.c -o ./build/file.o
 
 ./build/stdio.o: ./src/stdio.c
 	x86_64-elf-gcc ${INCLUDES} $(FLAGS) -std=gnu99 -c ./src/stdio.c -o ./build/stdio.o

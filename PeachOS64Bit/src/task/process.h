@@ -29,6 +29,19 @@ struct process_arguments
     char** argv;
 };
 
+
+struct process_file_handle
+{
+    // File number returend by fopen
+    int fd;
+
+    // filepath
+    char file_path[PEACHOS_MAX_PATH];
+
+    // Mode, "w", "r", "w+"
+    char mode[2];
+};
+
 struct process
 {
     // The process id
@@ -41,6 +54,10 @@ struct process
 
     // The memory (malloc) allocations of the process
     struct process_allocation allocations[PEACHOS_MAX_PROGRAM_ALLOCATIONS];
+
+    // File handle vector,
+    // vector of struct process_file_handle*
+    struct vector* file_handles;
 
     PROCESS_FILETYPE filetype;
 
@@ -65,6 +82,7 @@ struct process
         int head;
     } keyboard;
 
+
     // The arguments of the process.
     struct process_arguments arguments;
 };
@@ -82,4 +100,6 @@ void process_get_arguments(struct process* process, int* argc, char*** argv);
 int process_inject_arguments(struct process* process, struct command_argument* root_argument);
 int process_terminate(struct process* process);
 
+struct process_file_handle* process_file_handle_get(struct process* process, int fd);
+int process_fopen(struct process* process, const char* path, const char* mode);
 #endif
