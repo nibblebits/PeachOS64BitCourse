@@ -9,6 +9,7 @@ int main(int argc, char** argv)
     if (fd > 0)
     {
         printf("File blank.elf opened\n");
+        fclose(fd);
     }
     else
     {

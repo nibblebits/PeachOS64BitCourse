@@ -3,6 +3,19 @@
 #include "task/process.h"
 #include "idt/idt.h"
 #include <stddef.h>
+#include <stdint.h>
+
+void* isr80h_command11_fclose(struct interrupt_frame* frame)
+{
+    int64_t fd = 0;
+    fd = (int64_t) task_get_stack_item(task_current(), 0);
+
+    // We have the file number lets close it
+    process_fclose(task_current()->process, fd);
+
+    // return null
+    return NULL;
+}
 
 void* isr80h_command10_fopen(struct interrupt_frame* frame)
 {

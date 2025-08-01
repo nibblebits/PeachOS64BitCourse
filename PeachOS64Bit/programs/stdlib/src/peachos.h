@@ -33,4 +33,6 @@ int peachos_system_run(const char* command);
 void peachos_exit();
 
 int peachos_fopen(const char* filename, const char* mode);
+void peachos_fclose(size_t fd);
+
 #endif
