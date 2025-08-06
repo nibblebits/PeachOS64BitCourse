@@ -5,6 +5,18 @@
 #include <stddef.h>
 #include <stdint.h>
 
+void* isr80h_command12_fread(struct interrupt_frame* frame)
+{
+    int res = 0;
+    void* buffer_virt_addr = task_get_stack_item(task_current(), 0);
+    size_t size = (size_t) task_get_stack_item(task_current(), 1);
+    size_t count = (size_t) task_get_stack_item(task_current(), 2);
+
+    long fd = (long) task_get_stack_item(task_current(), 3);
+    res = process_fread(task_current()->process, buffer_virt_addr, size, count, fd);
+    return (void*) (int64_t) res;
+}
+
 void* isr80h_command11_fclose(struct interrupt_frame* frame)
 {
     int64_t fd = 0;

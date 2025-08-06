@@ -34,5 +34,6 @@ void peachos_exit();
 
 int peachos_fopen(const char* filename, const char* mode);
 void peachos_fclose(size_t fd);
+long peachos_read(void* buffer, size_t size, size_t count, long fd);
 
 #endif

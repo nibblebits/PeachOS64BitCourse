@@ -12,3 +12,8 @@ void fclose(int fd)
 {
     peachos_fclose((size_t) fd);
 }
+
+int fread(void* buffer, size_t size, size_t count, long fd)
+{
+    return peachos_fread(buffer, size, count, fd);
+}
