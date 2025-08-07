@@ -17,7 +17,7 @@ struct process *current_process = 0;
 
 static struct process *processes[PEACHOS_MAX_PROCESSES] = {};
 
-struct process_allocation *process_get_allocation_by_start_addr(struct process *process, void *addr, struct process_allocation* allocation_out);
+int process_get_allocation_by_start_addr(struct process *process, void *addr, struct process_allocation* allocation_out);
 
 int process_free_process(struct process *process);
 int process_close_file_handles(struct process *process);
@@ -159,17 +159,27 @@ static bool process_is_process_pointer(struct process *process, void *ptr)
 
 static void process_allocation_unjoin(struct process *process, void *ptr)
 {
-    for (int i = 0; i < PEACHOS_MAX_PROGRAM_ALLOCATIONS; i++)
+    size_t total_allocations = vector_count(process->allocations);
+    for (size_t i = 0; i < total_allocations; i++)
     {
-        if (process->allocations[i].ptr == ptr)
+        struct process_allocation allocation;
+        int res = vector_at(process->allocations, i, &allocation, sizeof(allocation));
+        if (res < 0)
         {
-            process->allocations[i].ptr = 0x00;
-            process->allocations[i].size = 0;
+            break;
+        }
+
+        if (allocation.ptr == ptr)
+        {
+            allocation.ptr = NULL;
+            allocation.end = NULL;
+            allocation.size = 0;
+            vector_overwrite(process->allocations, i, &allocation, sizeof(allocation));
         }
     }
 }
 
-struct process_allocation *process_get_allocation_by_start_addr(struct process *process, void *addr, struct process_allocation* allocation_out)
+int process_get_allocation_by_start_addr(struct process *process, void *addr, struct process_allocation* allocation_out)
 {
     size_t total_allocations = vector_count(process->allocations);
     for(size_t i = 0; i < total_allocations; i++)
@@ -278,6 +288,10 @@ int process_free_process(struct process *process)
     process_free_program_data(process);
     process_close_file_handles(process);
 
+    // Free the process allocations
+    vector_free(process->allocations);
+    process->allocations = NULL;
+
     // Free the process stack memory.
     if (process->stack)
     {
@@ -382,7 +396,7 @@ void process_free(struct process *process, void *ptr)
         return;
     }
 
-    int res = paging_map_to(process->task->paging_desc, allocation.ptr, allocation.ptr, paging_align_address(allocation.ptr + allocation.size), 0x00);
+    res = paging_map_to(process->task->paging_desc, allocation.ptr, allocation.ptr, paging_align_address(allocation.ptr + allocation.size), 0x00);
     if (res < 0)
     {
         return;
@@ -638,6 +652,86 @@ out:
     return res;
 }
 
+bool process_is_stack_memory(struct process* process, void* addr)
+{
+    return (uintptr_t) addr >= PEACHOS_PROGRAM_VIRTUAL_STACK_ADDRESS_END &&
+           (uintptr_t) addr <= PEACHOS_PROGRAM_VIRTUAL_STACK_ADDRESS_START;
+}
+
+int process_get_allocation_by_addr(struct process* process, void* addr, struct process_allocation_request* allocation_request_out)
+{
+    // Null the request
+    memset(allocation_request_out, 0, sizeof(struct process_allocation_request));
+
+    // Is this stack memory?
+    if (process_is_stack_memory(process, addr))
+    {
+        // we have stack memory
+        uint64_t addr_int = (uint64_t) addr;
+        uint64_t stack_size = PEACHOS_USER_PROGRAM_STACK_SIZE;
+        // START OF THE STACK IS HIGHER IN MEMORY REMEMBER
+        uint64_t total_bytes_left = PEACHOS_PROGRAM_VIRTUAL_STACK_ADDRESS_START - addr_int;
+        allocation_request_out->allocation.ptr = (void*) PEACHOS_PROGRAM_VIRTUAL_STACK_ADDRESS_END;
+        allocation_request_out->allocation.end = (void*) PEACHOS_PROGRAM_VIRTUAL_STACK_ADDRESS_START;
+        allocation_request_out->allocation.size = stack_size;
+        allocation_request_out->flags |= PROCESS_ALLOCATION_REQUEST_IS_STACK_MEMORY;
+        allocation_request_out->peek.addr = addr;
+        allocation_request_out->peek.end = (void*) PEACHOS_PROGRAM_VIRTUAL_STACK_ADDRESS_START;
+        allocation_request_out->peek.total_bytes_left = total_bytes_left;
+        return 0;
+    }
+
+    // Not a stack address then check the heap
+    size_t total_allocations = vector_count(process->allocations);
+    for(size_t i = 0; i < total_allocations; i++)
+    {
+        struct process_allocation allocation;
+        int res = vector_at(process->allocations, i, &allocation, sizeof(allocation));
+        if (res < 0)
+        {
+            break;
+        }
+
+        uint64_t allocation_addr = (uint64_t) allocation.ptr;
+        uint64_t allocation_addr_end = (uint64_t) allocation.end;
+        if ((uint64_t) addr >= allocation_addr &&
+            ((uint64_t) addr) <= allocation_addr_end)
+        {
+            size_t bytes_used = (uint64_t) addr - allocation_addr;
+            size_t bytes_left = allocation_addr_end - bytes_used;
+            allocation_request_out->allocation = allocation;
+            allocation_request_out->peek.addr = addr;
+            allocation_request_out->peek.end = (void*) allocation_addr_end;
+            allocation_request_out->peek.total_bytes_left = bytes_left;
+            return 0;
+        }
+    }
+
+    return -EIO;
+}
+
+int process_validate_memory_or_terminate(struct process* process, void* virt_addr, size_t space_needed)
+{
+    int res = 0;
+    struct process_allocation_request allocation_request;
+    res = process_get_allocation_by_addr(process, virt_addr, &allocation_request);
+    if (res < 0)
+    {
+        goto out;
+    }
+
+    if (allocation_request.peek.total_bytes_left < space_needed)
+    {
+        res =-EINVARG;
+        goto out;
+    }
+out:
+    if (res < 0)
+    {
+        process_terminate(process);
+    }
+    return res;
+}
 int process_fread(struct process *process, void *virt_ptr, uint64_t size, uint64_t nmemb, int fd)
 {
     int res = 0;
