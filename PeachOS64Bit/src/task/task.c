@@ -97,7 +97,6 @@ static void task_list_remove(struct task *task)
 
 int task_free(struct task *task)
 {
-    paging_desc_free(task->paging_desc);
     task_list_remove(task);
 
     // Finally free the task data
@@ -120,13 +119,13 @@ void task_next()
 int task_switch(struct task *task)
 {
     current_task = task;
-    paging_switch(task->paging_desc);
+    paging_switch(task->process->paging_desc);
     return 0;
 }
 
 struct paging_desc* task_paging_desc(struct task* task)
 {
-    return task->paging_desc;
+    return task->process->paging_desc;
 }
 
 struct paging_desc* task_current_paging_desc()
@@ -240,14 +239,6 @@ void task_run_first_ever_task()
 int task_init(struct task *task, struct process *process)
 {
     memset(task, 0, sizeof(struct task));
-    // Map the entire 4GB address space to its self
-    task->paging_desc = paging_desc_new(PAGING_MAP_LEVEL_4);
-    if (!task->paging_desc)
-    {
-        return -EIO;
-    }
-
-    paging_map_e820_memory_regions(task->paging_desc);
 
     task->registers.ip = PEACHOS_PROGRAM_VIRTUAL_ADDRESS;
     if (process->filetype == PROCESS_FILETYPE_ELF)
@@ -282,5 +273,5 @@ void* task_get_stack_item(struct task* task, int index)
 
 void* task_virtual_address_to_physical(struct task* task, void* virtual_address)
 {
-    return paging_get_physical_address(task->paging_desc, virtual_address);
+    return paging_get_physical_address(task->process->paging_desc, virtual_address);
 }

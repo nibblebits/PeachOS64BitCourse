@@ -26,11 +26,6 @@ struct registers
 struct process;
 struct task
 {
-    /**
-     * The page directory of the task.
-     */
-    struct paging_desc* paging_desc;
-
     // The registers of the task when the task is not running
     struct registers registers;
 

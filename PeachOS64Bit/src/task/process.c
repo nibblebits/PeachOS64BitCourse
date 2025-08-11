@@ -25,7 +25,7 @@ int process_close_file_handles(struct process *process);
 
 void* process_virtual_address_to_physical(struct process* process, void* virt_addr)
 {
-    return paging_get_physical_address(process->task->paging_desc, virt_addr);
+    return paging_get_physical_address(process->paging_desc, virt_addr);
 }
 
 static void process_init(struct process *process)
@@ -88,7 +88,7 @@ int process_find_free_allocation_index(struct process *process)
 
 int process_allocation_set_map(struct process *process, int allocation_entry_index, void *ptr, size_t size)
 {
-    int res = paging_map_to(process->task->paging_desc, ptr, ptr, paging_align_address(ptr + size), PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
+    int res = paging_map_to(process->paging_desc, ptr, ptr, paging_align_address(ptr + size), PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
     if (res < 0)
     {
         goto out;
@@ -402,7 +402,7 @@ void process_free(struct process *process, void *ptr)
         return;
     }
 
-    res = paging_map_to(process->task->paging_desc, allocation.ptr, allocation.ptr, paging_align_address(allocation.ptr + allocation.size), 0x00);
+    res = paging_map_to(process->paging_desc, allocation.ptr, allocation.ptr, paging_align_address(allocation.ptr + allocation.size), 0x00);
     if (res < 0)
     {
         return;
@@ -492,7 +492,7 @@ static int process_load_data(const char *filename, struct process *process)
 int process_map_binary(struct process *process)
 {
     int res = 0;
-    paging_map_to(process->task->paging_desc, (void *)PEACHOS_PROGRAM_VIRTUAL_ADDRESS, process->ptr, paging_align_address(process->ptr + process->size), PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL | PAGING_IS_WRITEABLE);
+    paging_map_to(process->paging_desc, (void *)PEACHOS_PROGRAM_VIRTUAL_ADDRESS, process->ptr, paging_align_address(process->ptr + process->size), PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL | PAGING_IS_WRITEABLE);
     return res;
 }
 
@@ -512,7 +512,7 @@ static int process_map_elf(struct process *process)
         {
             flags |= PAGING_IS_WRITEABLE;
         }
-        res = paging_map_to(process->task->paging_desc, paging_align_to_lower_page((void *)(uintptr_t)phdr->p_vaddr), paging_align_to_lower_page(phdr_phys_address), paging_align_address(phdr_phys_address + phdr->p_memsz), flags);
+        res = paging_map_to(process->paging_desc, paging_align_to_lower_page((void *)(uintptr_t)phdr->p_vaddr), paging_align_to_lower_page(phdr_phys_address), paging_align_address(phdr_phys_address + phdr->p_memsz), flags);
         if (ISERR(res))
         {
             break;
@@ -523,6 +523,10 @@ static int process_map_elf(struct process *process)
 int process_map_memory(struct process *process)
 {
     int res = 0;
+
+    // Map all the e820 memory regions 
+    // so the whole address space is mapped
+    paging_map_e820_memory_regions(process->paging_desc);
 
     switch (process->filetype)
     {
@@ -544,7 +548,7 @@ int process_map_memory(struct process *process)
     }
 
     // Finally map the stack
-    paging_map_to(process->task->paging_desc, (void *)PEACHOS_PROGRAM_VIRTUAL_STACK_ADDRESS_END, process->stack, paging_align_address(process->stack + PEACHOS_USER_PROGRAM_STACK_SIZE), PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL | PAGING_IS_WRITEABLE);
+    paging_map_to(process->paging_desc, (void *)PEACHOS_PROGRAM_VIRTUAL_STACK_ADDRESS_END, process->stack, paging_align_address(process->stack + PEACHOS_USER_PROGRAM_STACK_SIZE), PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL | PAGING_IS_WRITEABLE);
 out:
     return res;
 }
@@ -621,6 +625,19 @@ int process_load_for_slot(const char *filename, struct process **process, int pr
     strncpy(_process->filename, filename, sizeof(_process->filename));
     _process->id = process_slot;
 
+    _process->paging_desc = paging_desc_new(PAGING_MAP_LEVEL_4);
+    if (!_process->paging_desc)
+    {
+        res = -EIO;
+        goto out;
+    }
+
+    res = process_map_memory(_process);
+    if (res < 0)
+    {
+        goto out;
+    }   
+
     // Create a task
     _process->task = task_new(_process);
     if (ERROR_I(_process->task) == 0)
@@ -629,12 +646,6 @@ int process_load_for_slot(const char *filename, struct process **process, int pr
 
         // Task is NULL due to error code being returned in task_new.
         _process->task = NULL;
-        goto out;
-    }
-
-    res = process_map_memory(_process);
-    if (res < 0)
-    {
         goto out;
     }
 
@@ -759,7 +770,7 @@ int process_fstat(struct process* process, int fd, struct file_stat* virt_filest
     {
         goto out;
     }
-    
+
 out:
     return res;
 }  
