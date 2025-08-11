@@ -732,6 +732,20 @@ out:
     }
     return res;
 }
+int process_fseek(struct process* process, int fd, int offset, FILE_SEEK_MODE whence)
+{
+    int res = 0;
+    struct process_file_handle* handle = process_file_handle_get(process, fd);
+    if (!handle)
+    {
+        res = -EIO;
+        goto out;
+    }
+
+    res = fseek(handle->fd, offset, whence);
+out:
+    return res;
+}
 int process_fread(struct process *process, void *virt_ptr, uint64_t size, uint64_t nmemb, int fd)
 {
     int res = 0;

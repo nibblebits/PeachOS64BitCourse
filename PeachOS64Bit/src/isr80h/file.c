@@ -4,6 +4,14 @@
 #include "idt/idt.h"
 #include <stddef.h>
 #include <stdint.h>
+void* isr80h_command13_fseek(struct interrupt_frame* frame)
+{ 
+    long fd = (long) task_get_stack_item(task_current(), 0);
+    long offset = (long) task_get_stack_item(task_current(), 1);
+    long whence = (long) task_get_stack_item(task_current(), 2);
+
+    return (void*) (long) process_fseek(task_current()->process, fd, offset, whence);
+}
 
 void* isr80h_command12_fread(struct interrupt_frame* frame)
 {

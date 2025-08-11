@@ -16,6 +16,7 @@ enum SystemCommands
     SYSTEM_COMMAND10_FOPEN,
     SYSTEM_COMMAND11_FCLOSE,
     SYSTEM_COMMAND12_FREAD,
+    SYSTEM_COMMAND13_FSEEK,
 };
 
 void isr80h_register_commands();

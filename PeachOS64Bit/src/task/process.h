@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include "task.h"
+#include "fs/file.h"
 #include "config.h"
 
 #define PROCESS_FILETYPE_ELF 0
@@ -123,5 +124,6 @@ struct process_file_handle* process_file_handle_get(struct process* process, int
 int process_fopen(struct process* process, const char* path, const char* mode);
 int process_fclose(struct process* process, int fd);
 int process_fread(struct process* process, void* virt_ptr, uint64_t size, uint64_t nmemb, int fd);
+int process_fseek(struct process* process, int fd, int offset, FILE_SEEK_MODE whence);
 
 #endif

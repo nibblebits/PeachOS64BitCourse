@@ -14,6 +14,7 @@ global peachos_exit:function
 global peachos_fopen:function
 global peachos_fclose:function
 global peachos_fread:function
+global peachos_fseek:function
 
 ; void print(const char* filename)
 print:
@@ -111,3 +112,13 @@ peachos_fread:
     int 0x80  ; invoke kernel
     add rsp, 32 ; restore the stack
     ret
+
+; long peachos_fseek(long fd, long offset, long whence);
+peachos_fseek:
+    mov rax, 13 ; Command 13 fseek 
+    push qword rdx ; whence
+    push qword rsi ; offset
+    push qword rdi ; fd
+    int 0x80       ; invokes the kernel
+    add rsp, 24    ; restores the stack
+    ret            ; return
