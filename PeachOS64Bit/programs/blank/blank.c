@@ -8,7 +8,11 @@ int main(int argc, char** argv)
     int fd = fopen("@:/blank.elf", "r");
     if (fd > 0)
     {
+
+        char buf[512] = {0};
         printf("File blank.elf opened\n");
+        fread(buf, 1, sizeof(buf), fd);
+        
         fclose(fd);
     }
     else

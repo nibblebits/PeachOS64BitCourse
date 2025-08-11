@@ -13,7 +13,7 @@ global peachos_system:function
 global peachos_exit:function
 global peachos_fopen:function
 global peachos_fclose:function
-global peachos_read:function
+global peachos_fread:function
 
 ; void print(const char* filename)
 print:
@@ -101,8 +101,8 @@ peachos_fclose:
     add rsp, 8  ; restore the stack
     ret
 
-; long peachos_read(void* buffer, size_t size, size_t count, long fd);
-peachos_read:
+; long peachos_fread(void* buffer, size_t size, size_t count, long fd);
+peachos_fread:
     mov rax, 12 ; Command 12 fread
     push qword rcx ; fd
     push qword rdx ; count
