@@ -22,3 +22,8 @@ int fseek(int fd, int offset, int whence)
 {
     return (int) peachos_fseek(fd, offset, whence);
 }
+
+int fstat(int fd, struct file_stat* file_stat_out)
+{
+    return (int) peachos_fstat(fd, file_stat_out);
+}

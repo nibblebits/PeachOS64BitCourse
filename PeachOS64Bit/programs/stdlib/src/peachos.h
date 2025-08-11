@@ -16,6 +16,8 @@ struct process_arguments
     char** argv;
 };
 
+// Forward declare file stat.
+struct file_stat;
 
 void print(const char* filename);
 int peachos_getkey();
@@ -36,4 +38,5 @@ int peachos_fopen(const char* filename, const char* mode);
 void peachos_fclose(size_t fd);
 long peachos_fread(void* buffer, size_t size, size_t count, long fd);
 long peachos_fseek(long fd, long offset, long whence);
+long peachos_fstat(long fd, struct file_stat* file_stat_out);
 #endif

@@ -4,6 +4,14 @@
 #include "idt/idt.h"
 #include <stddef.h>
 #include <stdint.h>
+
+void* isr80h_command14_fstat(struct interrupt_frame* frame)
+{
+    long fd = (long) task_get_stack_item(task_current(), 0);
+    struct file_stat* virt_file_stat_addr = (struct file_stat*) task_get_stack_item(task_current(), 1);
+    return (void*)(long) process_fstat(task_current()->process, fd, virt_file_stat_addr);
+}
+
 void* isr80h_command13_fseek(struct interrupt_frame* frame)
 { 
     long fd = (long) task_get_stack_item(task_current(), 0);

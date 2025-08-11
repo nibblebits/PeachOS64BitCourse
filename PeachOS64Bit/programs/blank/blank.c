@@ -8,11 +8,11 @@ int main(int argc, char** argv)
     int fd = fopen("@:/blank.elf", "r");
     if (fd > 0)
     {
-
-        char buf[512] = {0};
+        struct file_stat file_stat = {0};
+       
         printf("File blank.elf opened\n");
-        fread(buf, 1, sizeof(buf), fd);
-        
+        fstat(fd, &file_stat);
+        printf("File size: %i\n", file_stat.filesize);
         fclose(fd);
     }
     else

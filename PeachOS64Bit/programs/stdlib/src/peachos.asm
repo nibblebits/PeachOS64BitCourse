@@ -15,6 +15,7 @@ global peachos_fopen:function
 global peachos_fclose:function
 global peachos_fread:function
 global peachos_fseek:function
+global peachos_fstat:function
 
 ; void print(const char* filename)
 print:
@@ -122,3 +123,12 @@ peachos_fseek:
     int 0x80       ; invokes the kernel
     add rsp, 24    ; restores the stack
     ret            ; return
+
+; long peachos_fstat(long fd, struct file_stat* file_stat_out)
+peachos_fstat:
+    mov rax, 14    ; Command 14 fstat
+    push qword rsi  ; file_stat_out
+    push qword rdi  ; fd
+    int 0x80        ; call kernel
+    add rsp, 16     ; restore stack
+    ret

@@ -21,4 +21,5 @@ void isr80h_register_commands()
     isr80h_register_command(SYSTEM_COMMAND11_FCLOSE, isr80h_command11_fclose);
     isr80h_register_command(SYSTEM_COMMAND12_FREAD, isr80h_command12_fread);
     isr80h_register_command(SYSTEM_COMMAND13_FSEEK, isr80h_command13_fseek);
+    isr80h_register_command(SYSTEM_COMMAND14_FSTAT, isr80h_command14_fstat);
 }
