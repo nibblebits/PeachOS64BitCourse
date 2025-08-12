@@ -178,6 +178,9 @@ void kernel_main()
     // load the tss
     tss_load(KERNEL_LONG_MODE_TSS_SELECTOR);
 
+    // Initialize the process system
+    process_system_init();
+
     print("tss load was fine\n");
     // Register isr80h commands
     isr80h_register_commands();
