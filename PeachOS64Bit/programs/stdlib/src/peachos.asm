@@ -16,6 +16,7 @@ global peachos_fclose:function
 global peachos_fread:function
 global peachos_fseek:function
 global peachos_fstat:function
+global peachos_realloc:function
 
 ; void print(const char* filename)
 print:
@@ -131,4 +132,14 @@ peachos_fstat:
     push qword rdi  ; fd
     int 0x80        ; call kernel
     add rsp, 16     ; restore stack
+    ret
+
+; void* peachos_realloc(void* old_ptr, size_t new_size);
+peachos_realloc:
+    mov rax, 15     ; Command 15 realloc
+    push qword rsi  ; new_size
+    push qword rdi  ; old_ptr
+    int 0x80
+    add rsp, 16
+    ; RAX = new the pointer address
     ret

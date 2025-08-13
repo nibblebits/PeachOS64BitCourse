@@ -22,4 +22,5 @@ void isr80h_register_commands()
     isr80h_register_command(SYSTEM_COMMAND12_FREAD, isr80h_command12_fread);
     isr80h_register_command(SYSTEM_COMMAND13_FSEEK, isr80h_command13_fseek);
     isr80h_register_command(SYSTEM_COMMAND14_FSTAT, isr80h_command14_fstat);
+    isr80h_register_command(SYSTEM_COMMAND15_REALLOC, isr80h_command15_realloc);
 }

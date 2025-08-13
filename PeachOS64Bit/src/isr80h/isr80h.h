@@ -18,6 +18,7 @@ enum SystemCommands
     SYSTEM_COMMAND12_FREAD,
     SYSTEM_COMMAND13_FSEEK,
     SYSTEM_COMMAND14_FSTAT,
+    SYSTEM_COMMAND15_REALLOC
 };
 
 void isr80h_register_commands();
