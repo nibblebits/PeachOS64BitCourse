@@ -93,6 +93,24 @@ void graphics_draw_rect(
     size_t height,
     struct framebuffer_pixel pixel_color
 );
+
+void graphics_set_z_index(struct graphics_info* graphics_info, uint32_t z_index);
+struct graphics_info* graphics_info_create_relative(struct graphics_info* source_graphics, size_t x, size_t y, size_t width, size_t height, int flags);
+void graphics_paste_pixels_to_pixels(
+    struct graphics_info* graphics_info_in,
+    struct graphics_info* graphics_info_out,
+    uint32_t src_x,
+    uint32_t src_y,
+    uint32_t width,
+    uint32_t height,
+    uint32_t dst_x,
+    uint32_t dst_y,
+    int flags
+);
+int graphics_pixel_get(struct graphics_info* graphics_info, uint32_t x, uint32_t y, struct framebuffer_pixel* pixel_out);
+
+void graphics_info_free(struct graphics_info* graphics_in);
+
 void graphics_ignore_color(struct graphics_info* graphics_info, struct framebuffer_pixel pixel_color);
 void graphics_transparency_key_set(struct graphics_info* graphics_info, struct framebuffer_pixel pixel_color);
 void graphics_transparency_key_remove(struct graphics_info* graphics_info);
