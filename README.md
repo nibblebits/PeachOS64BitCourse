@@ -8,7 +8,7 @@ In **Part 2**, we take the project to the next level:
 
 ---
 
-[![Get the Course](https://img.shields.io/badge/Get%20the%20Course-Discount%20Link-blue?style=for-the-badge&logo=appveyor)](https://dragonzap.com/course/developing-a-multithreaded-kernel-from-scratch-part-two-module-one?coupon=KERNELPART2DISCOUNT)
+[![Get the Course](https://img.shields.io/badge/Get%20the%20Course-Discount%20Link-blue?style=for-the-badge&logo=appveyor)](https://dragonzap.com/course/developing-a-multithreaded-kernel-from-scratch-part-two-module-one?coupon=JUST99KERNEL)
 
 
 ## What You’ll Learn in This Course
@@ -55,7 +55,7 @@ By the end of Part 2, you’ll have built a **multi-threaded, 64-bit, GUI operat
 
 ## 📚 Take the Course
 This repo contains the **source code**, but the **course** walks you through every line of it step by step.  
-👉 [Enroll Here](https://dragonzap.com/course/developing-a-multithreaded-kernel-from-scratch-part-two-module-one?coupon=KERNELPART2DISCOUNT) and start building your own OS today.
+👉 [Enroll Here](https://dragonzap.com/course/developing-a-multithreaded-kernel-from-scratch-part-two-module-one?coupon=JUST99KERNEL) and start building your own OS today.
 
 ### 🎉 Special Discount
 If you purchase **Module 1** before **Module 2** is released, you’ll get **Module 2 for just €34.99** (or equivalent in your currency).  
