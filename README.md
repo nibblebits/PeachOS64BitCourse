@@ -1,5 +1,17 @@
 # PeachOS64 — Build a Modern 64-Bit Operating System From Scratch
 
+<p align="center">
+  <a href="https://dragonzap.com/offer/developing-a-multithreaded-kernel-from-scratch-part-two-full-series">
+  <img
+    width="640"
+    height="427"
+    alt="PeachOS 64-Bit Part 2 Series "
+    src="https://github.com/user-attachments/assets/5833c684-1036-4bdb-accf-3b9685e5ad4b"
+  />
+  </a>
+</p>
+
+
 This repository is the companion source code for **Part 2 of the PeachOS series**.  
 In [Part 1](https://dragonzap.com/course/developing-a-multithreaded-kernel-from-scratch?coupon=GITHUBKERNELDISCOUNT), we built **PeachOS**, a fully functioning **32-bit multitasking operating system**.  
 
