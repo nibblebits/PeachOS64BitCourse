@@ -2,12 +2,7 @@
 
 <p align="center">
   <a href="https://dragonzap.com/offer/developing-a-multithreaded-kernel-from-scratch-part-two-full-series">
-  <img
-    width="640"
-    height="427"
-    alt="PeachOS 64-Bit Part 2 Series "
-    src="https://github.com/user-attachments/assets/5833c684-1036-4bdb-accf-3b9685e5ad4b"
-  />
+ <img width="650" alt="PeachOS Part Two Kernel Dev Series Click To Obtain" src="https://github.com/user-attachments/assets/4022f9b3-a409-4b57-9454-eddec561fa18" />
   </a>
 </p>
 
